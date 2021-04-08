@@ -37,7 +37,7 @@ class Cli implements Callable<Integer> {
             if (outputFile.isDirectory()) {
                 throw new IllegalArgumentException(String.format("Error: output file %s is a directory", outputFile.getAbsolutePath()));
             }
-            if (!outputFile.canWrite()) {
+            if (!outputFile.createNewFile() && !outputFile.canWrite()) {
                 throw new IllegalArgumentException(String.format("Error: output file %s can't be written to", outputFile.getAbsolutePath()));
             }
         }
