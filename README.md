@@ -1,4 +1,6 @@
-# Vulnerable Functionality
+# ⚠️ BETA QUALITY SOFTWARE! ⚠️
+
+## Vulnerable Functionality
 
 This repo analyses your code to determine what parts of your dependencies you use, and hashes and uploads this information to debricked.
 
