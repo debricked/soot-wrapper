@@ -25,3 +25,9 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots verify
+      - run: mkdir artifact && cp target/*.jar artifact && cp -r target/dependency artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: java-common-artifact
+          path: artifact
