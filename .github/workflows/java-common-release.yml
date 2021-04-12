@@ -16,7 +16,8 @@ jobs:
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
-          with: java-common-artifact
+          with:
+            name: java-common-artifact
       - name: Prepare release
         run: tar -czf release.tar.gz artifact
       - name: Create release
