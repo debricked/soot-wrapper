@@ -19,13 +19,13 @@ jobs:
           release_name: Release ${{ github.ref }}
           tag_name: ${{ github.ref }}
 
-  java-common:
-    name: java/common test and release
+  java:
+    name: java test and release
     runs-on: ubuntu-latest
     needs: create_release
     defaults:
       run:
-        working-directory: java/common
+        working-directory: java
 
     steps:
       - uses: actions/checkout@v2
@@ -41,10 +41,10 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
-        run: mvn --batch-mode --update-snapshots verify
+        run: mvn -f common --batch-mode --update-snapshots verify
       - name: Conditionally prepare release
         if: startsWith(github.event.ref, 'refs/tags/')
-        run: tar -czf release.tar.gz target/*.jar target/dependency
+        run: tar -czf release.tar.gz common/target/*.jar common/target/dependency maven/*
       - name: Conditionally upload to release
         if: startsWith(github.event.ref, 'refs/tags/')
         uses: actions/upload-release-asset@v1
@@ -52,24 +52,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: java/common/release.tar.gz
-          asset_name: java-common.tar.gz
+          asset_path: java/release.tar.gz
+          asset_name: java.tar.gz
           asset_content_type: application/gzip
-
-  java-maven:
-    name: java/maven release
-    runs-on: ubuntu-latest
-    needs: create_release
-    if: startsWith(github.event.ref, 'refs/tags/')
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Conditionally upload to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: java/maven/mavenWrapper.sh
-          asset_name: java-mavenWrapper.sh
-          asset_content_type: text/plain
