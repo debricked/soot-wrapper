@@ -43,4 +43,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: release.tar.gz
           asset_name: release.tar.gz
-          assert_content_type: application/gzip
+          asset_content_type: application/gzip
