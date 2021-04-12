@@ -7,7 +7,21 @@ defaults:
     working-directory: java/common
 
 jobs:
-  test:
+  create_release:
+    name: Conditionally creates release
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.ref, 'refs/tags/')
+
+    steps:
+      - id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref }}
+
+  java-common:
     name: Test and conditional release
     runs-on: ubuntu-latest
 
@@ -29,22 +43,30 @@ jobs:
       - name: Conditionally prepare release
         if: startsWith(github.event.ref, 'refs/tags/')
         run: tar -czf release.tar.gz target/*.jar target/dependency
-      - name: Conditionally create release
-        id: create_release
-        if: startsWith(github.event.ref, 'refs/tags/')
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_name: Release ${{ github.ref }}
-          tag_name: ${{ github.ref }}
-      - name: Conditionally upload release
+      - name: Conditionally upload to release
         if: startsWith(github.event.ref, 'refs/tags/')
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ jobs.create_release.steps.create_release.outputs.upload_url }}
           asset_path: java/common/release.tar.gz
           asset_name: java-common.tar.gz
           asset_content_type: application/gzip
+
+  java-maven:
+    name: Conditional release
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.ref, 'refs/tags/')
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Conditionally upload to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ jobs.create_release.steps.create_release.outputs.upload_url }}
+          asset_path: java/maven/mavenWrapper.sh
+          asset_name: java-mavenWrapper.sh
+          asset_content_type: text/plain
