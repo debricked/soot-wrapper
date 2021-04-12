@@ -10,14 +10,16 @@ defaults:
     working-directory: java/common
 
 jobs:
-  build:
+  release:
+    name: Release
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
-          with:
-            name: java-common-artifact
+        with:
+          name: java-common-artifact
       - name: Prepare release
         run: tar -czf release.tar.gz artifact
       - name: Create release
