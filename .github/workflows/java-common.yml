@@ -1,6 +1,10 @@
-name: Java common tests
+name: Java common test and release
 
 on: [push]
+
+defaults:
+  run:
+    working-directory: java/common
 
 jobs:
   build:
