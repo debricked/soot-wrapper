@@ -10,6 +10,8 @@ jobs:
   create_release:
     name: Conditionally creates release
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     if: startsWith(github.event.ref, 'refs/tags/')
 
     steps:
@@ -24,6 +26,7 @@ jobs:
   java-common:
     name: Test and conditional release
     runs-on: ubuntu-latest
+    needs: create_release
 
     steps:
       - uses: actions/checkout@v2
@@ -49,7 +52,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ jobs.create_release.steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: java/common/release.tar.gz
           asset_name: java-common.tar.gz
           asset_content_type: application/gzip
@@ -57,6 +60,7 @@ jobs:
   java-maven:
     name: Conditional release
     runs-on: ubuntu-latest
+    needs: create_release
     if: startsWith(github.event.ref, 'refs/tags/')
 
     steps:
@@ -66,7 +70,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ jobs.create_release.steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: java/maven/mavenWrapper.sh
           asset_name: java-mavenWrapper.sh
           asset_content_type: text/plain
