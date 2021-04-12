@@ -26,9 +26,21 @@ jobs:
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots verify
       - name: Prepare release
-        run: mkdir staging && cp target/*.jar staging && cp -r target/dependency staging
-      - name: Do release
-        uses: actions/upload-artifact@v2
+        run: tar -czf release.tar.gz target/*.jar target/dependency
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Package
-          path: java/common/staging
+          release_name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref }}
+      - name: Upload release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release.tar.gz
+          asset_name: release.tar.gz
+          assert_content_type: application/gzip
