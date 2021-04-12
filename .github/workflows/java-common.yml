@@ -1,4 +1,4 @@
-name: Java common test
+name: Java common test and conditional release
 
 on: [push]
 
@@ -8,7 +8,7 @@ defaults:
 
 jobs:
   test:
-    name: Test
+    name: Test and conditional release
     runs-on: ubuntu-latest
 
     steps:
@@ -38,7 +38,7 @@ jobs:
         with:
           release_name: Release ${{ github.ref }}
           tag_name: ${{ github.ref }}
-      - name: Contidionally upload release
+      - name: Conditionally upload release
         if: startsWith(github.event.ref, 'refs/tags/')
         uses: actions/upload-release-asset@v1
         env:
