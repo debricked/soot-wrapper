@@ -30,7 +30,7 @@ public class SootWrapperTest {
         Map<String, Set<String>> calls = res.getCallGraph();
         assertTrue(res.getBadPhantoms().isEmpty(),
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
-        assertTrue(res.getBadPhantoms().isEmpty(),
+        assertTrue(res.getPhantoms().isEmpty(),
                 String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
         assertMethodCallsMethods(calls, "Main.main(String[])", new String[]{
                 "classDependency.ClassDependency.<init>()"
@@ -78,7 +78,7 @@ public class SootWrapperTest {
         Map<String, Set<String>> calls = res.getCallGraph();
         assertTrue(res.getBadPhantoms().isEmpty(),
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
-        assertTrue(res.getBadPhantoms().isEmpty(),
+        assertTrue(res.getPhantoms().isEmpty(),
                 String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
         assertMethodCallsMethods(calls, "Main.method()", new String[]{"Parent.publicParentMethod()"});
         assertMethodCallsMethods(calls, "Parent.publicParentMethod()", new String[]{"Parent.privateParentMethod()"});
