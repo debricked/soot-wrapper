@@ -1,4 +1,4 @@
-FROM maven:3-jdk-11
+FROM maven:3-jdk-11-slim
 
 COPY java/common /vulnfunc/java/common
 RUN mvn -f /vulnfunc/java/common --batch-mode --update-snapshots package
