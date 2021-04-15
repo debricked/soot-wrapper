@@ -1,0 +1,9 @@
+name: Debricked Vulnerable Functionality for Java Maven
+author: Debricked
+description: todo
+runs:
+  using: docker
+  image: docker://debricked/vulnerable-functionality:vulnerable-funcitonality-java-maven
+branding:
+  color: purple
+  icon: filter
