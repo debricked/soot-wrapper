@@ -3,7 +3,7 @@ author: Debricked
 description: todo
 runs:
   using: docker
-  image: docker://debricked/vulnerable-functionality:vulnerable-funcitonality-java-maven
+  image: docker://debricked/vulnerable-functionality:vulnerable-functionality-java-maven
 branding:
   color: purple
   icon: filter
