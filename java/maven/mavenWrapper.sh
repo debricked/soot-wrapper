@@ -16,10 +16,10 @@ fi
 cwd=`pwd`
 dependencyDir="${cwd%/}/dependencies"
 echo "Copying dependencies to "$dependencyDir" for "$projectRootDirectory
-mvn -B -f $projectRootDirectory dependency:copy-dependencies -DoutputDirectory=$dependencyDir --fail-at-end
+mvn -q -B -f $projectRootDirectory dependency:copy-dependencies -DoutputDirectory=$dependencyDir --fail-at-end
 
 echo "Compiling "$projectRootDirectory
-mvn -B -f $projectRootDirectory compile --fail-at-end
+mvn -q -B -f $projectRootDirectory compile --fail-at-end
 
 pathToSootWrapper="vulnfunc/java/common/target/SootWrapper-0.1.jar"
 pathToOutputFile=".debricked-call-graph"
