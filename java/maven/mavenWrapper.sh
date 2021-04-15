@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -e
+
 if ! [ -d "$1" ] ; then
 	echo "USAGE: "$0" projectRootDirectory"
 	exit 1
