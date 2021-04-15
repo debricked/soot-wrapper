@@ -5,6 +5,4 @@ RUN mvn -f /vulnfunc/java/common --batch-mode --update-snapshots package
 
 FROM maven:3-jdk-11-slim
 COPY --from=package /vulnfunc/java/common/target/SootWrapper-0.1-jar-with-dependencies.jar /vulnfunc/java/common/target/SootWrapper-0.1.jar
-COPY java/maven/mavenWrapper.sh /vulnfunc/java/maven/mavenWrapper.sh
-
-CMD /vulnfunc/java/maven/mavenWrapper.sh .
+COPY java/maven/*.sh /vulnfunc/java/maven/

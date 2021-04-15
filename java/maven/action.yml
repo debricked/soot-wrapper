@@ -1,9 +1,17 @@
 name: Debricked Vulnerable Functionality for Java Maven
 author: Debricked
 description: todo
+inputs:
+  root-pom-directory:
+    description: Folder containing the root pom.xml of the project to analyse
+    required: false
+    default: '.'
 runs:
   using: docker
   image: docker://debricked/vulnerable-functionality:vulnerable-functionality-java-maven
+  entrypoint: /vulnfunc/java/maven/github-action.sh
+  args:
+    - ${{ inputs.root-pom-directory }}
 branding:
   color: purple
   icon: filter
