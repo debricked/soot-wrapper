@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-sh ./mavenWrapper.sh $1
+sh /vulnfunc/java/maven/mavenWrapper.sh $1
