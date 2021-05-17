@@ -91,6 +91,34 @@ public class SootWrapperTest {
         //  parameterized classes (eg. package.Class<Type>.add(Type)) look the way we want them to
     }
 
+    @Test
+    public void testPrivateAndAnonymousClasses() {
+        AnalysisResult res = SootWrapper.doAnalysis(
+                Collections.singletonList(Paths.get(basePath + "testPrivateAndAnonymousClasses/userCode")),
+                Collections.singletonList(Paths.get(basePath + "testPrivateAndAnonymousClasses/dependencies")));
+        Map<String, Set<String>> calls = res.getCallGraph();
+        assertTrue(res.getBadPhantoms().isEmpty(),
+                String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
+        assertTrue(res.getPhantoms().isEmpty(),
+                String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
+        assertMethodCallsMethods(calls, "UserCode.main(String[])", new String[]{
+                "Dependency.<init>()",
+                "Dependency.method()"
+        });
+        assertMethodCallsMethods(calls, "Dependency.method()", new String[]{
+                "Dependency$1PrivateClass.<init>(Dependency)",
+                "Dependency$1PrivateClass.interfaceMethod()",
+                "Dependency$1.<init>(Dependency)",
+                "Dependency$1.interfaceMethod()",
+        });
+        assertMethodCallsMethods(calls, "Dependency$1PrivateClass.interfaceMethod()", new String[]{
+                "Dependency$1PrivateClass.privateClassMethod()"
+        });
+        assertMethodCallsMethods(calls, "Dependency$1.interfaceMethod()", new String[]{
+                "Dependency$1.anonymousClassMethod()"
+        });
+    }
+
     // This test takes too long to run in the pipeline
     @Test @Disabled
     public void testGetCallGraphSelf() {
