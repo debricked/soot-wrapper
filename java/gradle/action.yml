@@ -1,0 +1,17 @@
+name: Debricked Vulnerable Functionality for Java Gradle
+author: Debricked
+description: todo
+inputs:
+  root-build-gradle-directory:
+    description: Folder containing the root build.gradle of the project to analyse
+    required: false
+    default: '.'
+runs:
+  using: docker
+  image: docker://debricked/vulnerable-functionality:gradle
+  entrypoint: /vulnfunc/java/gradle/github-action.sh
+  args:
+    - ${{ inputs.root-build-gradle-directory }}
+branding:
+  color: purple
+  icon: filter
