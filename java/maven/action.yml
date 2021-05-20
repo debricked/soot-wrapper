@@ -8,7 +8,7 @@ inputs:
     default: '.'
 runs:
   using: docker
-  image: docker://debricked/vulnerable-functionality:vulnerable-functionality-java-maven
+  image: docker://debricked/vulnerable-functionality:maven
   entrypoint: /vulnfunc/java/maven/github-action.sh
   args:
     - ${{ inputs.root-pom-directory }}
