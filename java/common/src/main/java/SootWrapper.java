@@ -42,8 +42,9 @@ public class SootWrapper {
 
         Set<SootClass> entryClasses = new HashSet<>();
         Map<String, Set<String>> calls = new HashMap<>();
+        Set<SootMethod> analysedMethods = new HashSet<>();
         for (SootMethod m : Scene.v().getEntryPoints()) {
-            analyseMethod(calls, cg, m, new HashSet<>());
+            analyseMethod(calls, cg, m, analysedMethods);
             entryClasses.add(m.getDeclaringClass());
         }
 
