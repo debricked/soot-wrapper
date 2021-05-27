@@ -44,24 +44,29 @@ class Cli implements Callable<Integer> {
 
         AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
 
-        Map<String, Set<String>> calls = res.getCallGraph();
+        Map<String[], Set<String[]>> calls = res.getCallGraph();
         int i = 0;
-        StringBuilder sb = new StringBuilder("{");
-        for (String from : calls.keySet()) {
-            sb.append("\n\t\"").append(from).append("\": [");
+        StringBuilder sb = new StringBuilder("[");
+        for (String[] from : calls.keySet()) {
+            sb.append("\n\t[\n\t\t").append(from[0]);
+            sb.append(",\n\t\t\"").append(from[1]);
+            sb.append("\",\n\t\t").append(from[2]);
+            sb.append(",\n\t\t\"").append(from[3]);
             int j = 0;
-            for (String to : calls.get(from)) {
-                sb.append("\n\t\t\"").append(to).append("\"");
+            sb.append("\",\n\t\t[");
+            for (String[] to : calls.get(from)) {
+                sb.append("\n\t\t\t[\n\t\t\t\t").append(to[0]);
+                sb.append(",\n\t\t\t\t\"").append(to[1]).append("\"\n\t\t\t]");
                 if (++j < calls.get(from).size()) {
                     sb.append(",");
                 }
             }
-            sb.append("\n\t]");
+            sb.append("\n\t\t]\n\t]");
             if (++i < calls.size()) {
                 sb.append(",");
             }
         }
-        sb.append("\n}");
+        sb.append("\n]");
 
         int exitCode = 0;
         Set<String> phantoms = res.getPhantoms();

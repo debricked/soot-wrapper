@@ -27,7 +27,7 @@ public class SootWrapperTest {
         AnalysisResult res = SootWrapper.doAnalysis(
                 Collections.singletonList(Paths.get(basePath + "testDependencyTracesAreIncluded/userCode")),
                 Collections.singletonList(Paths.get(basePath + "testDependencyTracesAreIncluded/dependencies")));
-        Map<String, Set<String>> calls = res.getCallGraph();
+        Map<String[], Set<String[]>> calls = res.getCallGraph();
         assertTrue(res.getBadPhantoms().isEmpty(),
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
@@ -62,10 +62,12 @@ public class SootWrapperTest {
                 ,"jarDependency.JarDependency.nestedMethodOnlyCalledFromDependencyMethodNotCalled()"
                 ,"jarDependency.JarDependency.dependencyMethodNotCalled()"
         };
-        for (String key : calls.keySet()) {
+        for (String[] key : calls.keySet()) {
             for (String unwantedSignature : unwantedSignatures) {
-                assertNotEquals(unwantedSignature, key);
-                assertFalse(calls.get(key).contains(unwantedSignature));
+                assertNotEquals(unwantedSignature, key[3]);
+                for (String[] value : calls.get(key)) {
+                    assertNotEquals(unwantedSignature, value[1]);
+                }
             }
         }
     }
@@ -75,7 +77,7 @@ public class SootWrapperTest {
         AnalysisResult res = SootWrapper.doAnalysis(
                 Collections.singletonList(Paths.get(basePath + "testInheritance/userCode")),
                 Collections.singletonList(Paths.get(basePath + "testInheritance/dependencies")));
-        Map<String, Set<String>> calls = res.getCallGraph();
+        Map<String[], Set<String[]>> calls = res.getCallGraph();
         assertTrue(res.getBadPhantoms().isEmpty(),
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
@@ -96,7 +98,7 @@ public class SootWrapperTest {
         AnalysisResult res = SootWrapper.doAnalysis(
                 Collections.singletonList(Paths.get(basePath + "testPrivateAndAnonymousClasses/userCode")),
                 Collections.singletonList(Paths.get(basePath + "testPrivateAndAnonymousClasses/dependencies")));
-        Map<String, Set<String>> calls = res.getCallGraph();
+        Map<String[], Set<String[]>> calls = res.getCallGraph();
         assertTrue(res.getBadPhantoms().isEmpty(),
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
@@ -123,11 +125,11 @@ public class SootWrapperTest {
     @Test @Disabled
     public void testGetCallGraphSelf() {
         try {
-            // remember to run `mvn package` to populate the below folders
+            // remember to run `mvn package` and `mvn dependency:copy-dependencies -DoutputDirectory="target/dependency"` to populate the below folders
             AnalysisResult res = SootWrapper.doAnalysis(
                     Collections.singletonList(Paths.get("target/classes")),
                     Collections.singletonList(Paths.get("target/dependency")));
-            Map<String, Set<String>> calls = res.getCallGraph();
+            Map<String[], Set<String[]>> calls = res.getCallGraph();
             assertTrue(res.getBadPhantoms().isEmpty(),
                     String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
             assertMethodCallsMethods(calls, "Cli.main(String[])", new String[]{
@@ -164,10 +166,27 @@ public class SootWrapperTest {
         }
     }
 
-    private void assertMethodCallsMethods(Map<String, Set<String>> calls, String caller, String[] callees) {
-        assertTrue(calls.containsKey(caller), String.format("Failed asserting that %s is a caller. Callers: %s\n", caller, calls.keySet().toString()));
-        for (String callee : callees) {
-            assertTrue(calls.get(caller).contains(callee), String.format("Failed asserting that %s calls %s. Set of called methods: %s\n", caller, callee, calls.get(caller).toString()));
+    private void assertMethodCallsMethods(Map<String[], Set<String[]>> calls, String caller, String[] targets) {
+        boolean found = false;
+        String[] index = null;
+        for (String[] callGraphCaller : calls.keySet()) {
+            if (callGraphCaller[3].equals(caller)) {
+                found = true;
+                index = callGraphCaller;
+                break;
+            }
+        }
+        assertTrue(found, String.format("Failed asserting that %s is a caller. Callers: %s\n", caller, calls.keySet()));
+        assertNotNull(index);
+        for (String target : targets) {
+            found = false;
+            for (String[] targetsCalled : calls.get(index)) {
+                if (targetsCalled[1].equals(target)) {
+                    found = true;
+                    break;
+                }
+            }
+            assertTrue(found, String.format("Failed asserting that %s calls %s. Set of called methods: %s\n", caller, target, calls.get(index).toString()));
         }
     }
 }
