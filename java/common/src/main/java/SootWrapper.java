@@ -92,15 +92,17 @@ public class SootWrapper {
     }
 
     private static String[] getFormattedTargetSignature(SootMethod method, int lineNumber) {
-        return new String[] { Integer.toString(lineNumber), getSignatureString(method) };
+        return new String[] { getSignatureString(method), Integer.toString(lineNumber) };
     }
 
     private static String[] getFormattedSourceSignature(SootMethod method) {
         return new String[] {
+                getSignatureString(method),
                 method.getDeclaringClass().isApplicationClass() ? "true" : "false",
+                method.getDeclaringClass().isJavaLibraryClass() ? "true" : "false",
                 getProbableName(method.getDeclaringClass()),
                 Integer.toString(method.getJavaSourceStartLineNumber()),
-                getSignatureString(method)
+                "-1", // todo source end line number
         };
     }
 

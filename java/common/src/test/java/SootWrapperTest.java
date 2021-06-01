@@ -170,7 +170,7 @@ public class SootWrapperTest {
         boolean found = false;
         String[] index = null;
         for (String[] callGraphCaller : calls.keySet()) {
-            if (callGraphCaller[3].equals(caller)) {
+            if (callGraphCaller[0].equals(caller)) {
                 found = true;
                 index = callGraphCaller;
                 break;

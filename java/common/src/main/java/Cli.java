@@ -10,6 +10,8 @@ import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "SootWrapper")
 class Cli implements Callable<Integer> {
+    private static final int VERSION = 1;
+
     @CommandLine.Option(names = {"-u", "--user-code"}, description = "Path(s) to user code", required = true)
     ArrayList<Path> userCodePaths;
 
@@ -42,31 +44,36 @@ class Cli implements Callable<Integer> {
             }
         }
 
-        AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
+        StringBuilder sb = new StringBuilder("{\n\t\"Version\": ");
+        sb.append(VERSION);
+        sb.append(",\n\t\"Data\":\n\t[");
 
+        AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
         Map<String[], Set<String[]>> calls = res.getCallGraph();
         int i = 0;
-        StringBuilder sb = new StringBuilder("[");
         for (String[] from : calls.keySet()) {
-            sb.append("\n\t[\n\t\t").append(from[0]);
-            sb.append(",\n\t\t\"").append(from[1]);
-            sb.append("\",\n\t\t").append(from[2]);
-            sb.append(",\n\t\t\"").append(from[3]);
+            sb.append("\n\t\t[\n\t\t\t").append(from[0]);
+            sb.append(",\n\t\t\t").append(from[1]);
+            sb.append(",\n\t\t\t\"").append(from[2]);
+            sb.append("\",\n\t\t\t").append(from[3]);
+            sb.append(",\n\t\t\t").append(from[4]);
+            sb.append(",\n\t\t\t\"").append(from[5]);
+            sb.append("\",\n\t\t\t[");
             int j = 0;
-            sb.append("\",\n\t\t[");
             for (String[] to : calls.get(from)) {
-                sb.append("\n\t\t\t[\n\t\t\t\t").append(to[0]);
-                sb.append(",\n\t\t\t\t\"").append(to[1]).append("\"\n\t\t\t]");
+                sb.append("\n\t\t\t\t[\n\t\t\t\t\t").append(to[0]);
+                sb.append(",\n\t\t\t\t\t\"").append(to[1]).append("\"\n\t\t\t\t]");
                 if (++j < calls.get(from).size()) {
                     sb.append(",");
                 }
             }
-            sb.append("\n\t\t]\n\t]");
+            sb.append("\n\t\t\t]\n\t\t]");
             if (++i < calls.size()) {
                 sb.append(",");
             }
         }
-        sb.append("\n]");
+        sb.append("\n\t]");
+        sb.append("\n}");
 
         int exitCode = 0;
         Set<String> phantoms = res.getPhantoms();
