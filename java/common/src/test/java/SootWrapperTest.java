@@ -176,17 +176,29 @@ public class SootWrapperTest {
                 break;
             }
         }
-        assertTrue(found, String.format("Failed asserting that %s is a caller. Callers: %s\n", caller, calls.keySet()));
+        if (!found) {
+            StringBuilder callers = new StringBuilder();
+            for (String[] callerString : calls.keySet()) {
+                callers.append(callerString[0]).append(", ");
+            }
+            fail(String.format("Failed asserting that %s is a caller. Callers: %s\n", caller, callers));
+        }
         assertNotNull(index);
         for (String target : targets) {
             found = false;
             for (String[] targetsCalled : calls.get(index)) {
-                if (targetsCalled[1].equals(target)) {
+                if (targetsCalled[0].equals(target)) {
                     found = true;
                     break;
                 }
             }
-            assertTrue(found, String.format("Failed asserting that %s calls %s. Set of called methods: %s\n", caller, target, calls.get(index).toString()));
+            if (!found) {
+                StringBuilder targetsString = new StringBuilder();
+                for (String[] targetString : calls.get(index)) {
+                    targetsString.append(targetString[0]).append(", ");
+                }
+                fail(String.format("Failed asserting that %s calls %s. Set of called methods: %s\n", caller, target, targetsString));
+            }
         }
     }
 }
