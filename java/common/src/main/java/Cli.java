@@ -44,9 +44,9 @@ class Cli implements Callable<Integer> {
             }
         }
 
-        StringBuilder sb = new StringBuilder("{\n\t\"Version\": ");
+        StringBuilder sb = new StringBuilder("{\n\t\"version\": ");
         sb.append(VERSION);
-        sb.append(",\n\t\"Data\":\n\t[");
+        sb.append(",\n\t\"data\":\n\t[");
 
         AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
         Map<String[], Set<String[]>> calls = res.getCallGraph();
