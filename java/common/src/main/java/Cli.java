@@ -52,17 +52,17 @@ class Cli implements Callable<Integer> {
         Map<String[], Set<String[]>> calls = res.getCallGraph();
         int i = 0;
         for (String[] from : calls.keySet()) {
-            sb.append("\n\t\t[\n\t\t\t").append(from[0]);
-            sb.append(",\n\t\t\t").append(from[1]);
-            sb.append(",\n\t\t\t\"").append(from[2]);
-            sb.append("\",\n\t\t\t").append(from[3]);
-            sb.append(",\n\t\t\t").append(from[4]);
-            sb.append(",\n\t\t\t\"").append(from[5]);
-            sb.append("\",\n\t\t\t[");
+            sb.append("\n\t\t[\n\t\t\t\"").append(from[0]);
+            sb.append("\",\n\t\t\t").append(from[1]);
+            sb.append(",\n\t\t\t").append(from[2]);
+            sb.append(",\n\t\t\t\"").append(from[3]);
+            sb.append("\",\n\t\t\t").append(from[4]);
+            sb.append(",\n\t\t\t").append(from[5]);
+            sb.append(",\n\t\t\t[");
             int j = 0;
             for (String[] to : calls.get(from)) {
-                sb.append("\n\t\t\t\t[\n\t\t\t\t\t").append(to[0]);
-                sb.append(",\n\t\t\t\t\t\"").append(to[1]).append("\"\n\t\t\t\t]");
+                sb.append("\n\t\t\t\t[\n\t\t\t\t\t\"").append(to[0]);
+                sb.append("\",\n\t\t\t\t\t").append(to[1]).append("\n\t\t\t\t]");
                 if (++j < calls.get(from).size()) {
                     sb.append(",");
                 }
