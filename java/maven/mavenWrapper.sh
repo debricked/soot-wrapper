@@ -25,3 +25,8 @@ pathToSootWrapper="/vulnfunc/java/common/target/SootWrapper-0.1.jar"
 pathToOutputFile=".debricked-call-graph"
 echo "Running SootWrapper"
 java -jar $pathToSootWrapper -u $projectRootDirectory"/target/classes" -l $dependencyDir -f $pathToOutputFile
+
+echo "Formatting output"
+zip -q $pathToOutputFile".zip" $pathToOutputFile
+base64 $pathToOutputFile".zip" > $pathToOutputFile
+rm $pathToOutputFile".zip"
