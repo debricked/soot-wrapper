@@ -6,12 +6,12 @@ if ! [ -d "$1" ] ; then
 	exit 1
 fi
 
+$pathToCommonDirectory = "/vulnfunc/java/common"
+source $pathToCommonDirectory"/commonWrapper.sh"
+
 projectRootDirectory="${1%/}"
 
-if ! [ `command -v gradle` > /dev/null 2>&1 ] ; then
-	echo "gradle command not found. Is gradle installed?"
-	exit 1
-fi
+exitIfNotInstalled gradle
 
 cwd=`pwd`
 cd $projectRootDirectory
@@ -34,13 +34,9 @@ echo "Compiling "$projectRootDirectory
 gradle -q compileJava
 
 cd $cwd
-#pathToSootWrapper="/vulnfunc/java/common/target/SootWrapper-0.1.jar"
-pathToSootWrapper="./java/common/target/SootWrapper-0.1-jar-with-dependencies.jar"
-pathToOutputFile=".debricked-call-graph"
+pathToSootWrapper=$pathToCommonDirectory"/target/SootWrapper-0.1.jar"
+outputFileName=".debricked-call-graph"
 echo "Running SootWrapper"
-java -jar $pathToSootWrapper -u $projectRootDirectory"/build/classes/java/main" -l $dependencyDir -f $pathToOutputFile
+java -jar $pathToSootWrapper -u $projectRootDirectory"/build/classes/java/main" -l $dependencyDir -f $outputFileName
 
-echo "Formatting output"
-zip -q $pathToOutputFile".zip" $pathToOutputFile
-base64 $pathToOutputFile".zip" > $pathToOutputFile
-rm $pathToOutputFile".zip"
+formatOutput $outputFileName

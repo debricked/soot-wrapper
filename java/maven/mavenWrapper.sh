@@ -6,12 +6,13 @@ if ! [ -d "$1" ] ; then
 	exit 1
 fi
 
+pathToCommonDirectory="/vulnfunc/java/common"
+pathToCommonDirectory="/home/rasmus/git/vulnerable-functionality-github/vulnerable-functionality/java/common"
+source $pathToCommonDirectory"/commonWrapper.sh"
+
 projectRootDirectory="${1%/}"
 
-if ! [ `command -v mvn` > /dev/null 2>&1 ] ; then
-	echo "mvn command not found. Is maven installed?"
-	exit 1
-fi
+exitIfNotInstalled mvn maven
 
 cwd=`pwd`
 dependencyDir="${cwd%/}/dependencies"
@@ -21,12 +22,9 @@ mvn -q -B -f $projectRootDirectory dependency:copy-dependencies -DoutputDirector
 echo "Compiling "$projectRootDirectory
 mvn -q -B -f $projectRootDirectory compile --fail-at-end
 
-pathToSootWrapper="/vulnfunc/java/common/target/SootWrapper-0.1.jar"
-pathToOutputFile=".debricked-call-graph"
+pathToSootWrapper=$pathToCommonDirectory"/target/SootWrapper-0.1-jar-with-dependencies.jar"
+outputFileName=".debricked-call-graph"
 echo "Running SootWrapper"
-java -jar $pathToSootWrapper -u $projectRootDirectory"/target/classes" -l $dependencyDir -f $pathToOutputFile
+java -jar $pathToSootWrapper -u $projectRootDirectory"/target/classes" -l $dependencyDir -f $outputFileName
 
-echo "Formatting output"
-zip -q $pathToOutputFile".zip" $pathToOutputFile
-base64 $pathToOutputFile".zip" > $pathToOutputFile
-rm $pathToOutputFile".zip"
+formatOutput $outputFileName
