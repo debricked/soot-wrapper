@@ -8,7 +8,7 @@ exitIfNotInstalled() {
 		name=$2
 	fi
 	if ! [ `command -v "$1"` > /dev/null 2>&1 ] ; then
-		echo $1" command not found. Is "$2" installed?"
+		echo $1" command not found. Is "$name" installed?"
 		exit 1
 	fi
 }
