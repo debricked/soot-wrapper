@@ -1,8 +1,6 @@
 import picocli.CommandLine;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
@@ -35,6 +33,7 @@ class Cli implements Callable<Integer> {
     public Integer call() throws Exception {
         checkExistsAndIsDir(userCodePaths);
         checkExistsAndIsDir(libraryCodePaths);
+        BufferedWriter writer;
         if (outputFile != null) {
             if (outputFile.isDirectory()) {
                 throw new IllegalArgumentException(String.format("Error: output file %s is a directory", outputFile.getAbsolutePath()));
@@ -42,38 +41,51 @@ class Cli implements Callable<Integer> {
             if (!outputFile.createNewFile() && !outputFile.canWrite()) {
                 throw new IllegalArgumentException(String.format("Error: output file %s can't be written to", outputFile.getAbsolutePath()));
             }
+            writer = new BufferedWriter(new FileWriter(outputFile, StandardCharsets.UTF_8));
+        } else {
+            writer = new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
         }
 
-        StringBuilder sb = new StringBuilder("{\n\t\"version\": ");
-        sb.append(VERSION);
-        sb.append(",\n\t\"data\":\n\t[");
+        writer.write("{\n\t\"version\": ");
+        writer.write(VERSION);
+        writer.write(",\n\t\"data\":\n\t[");
 
         AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
         Map<String[], Set<String[]>> calls = res.getCallGraph();
         int i = 0;
         for (String[] from : calls.keySet()) {
-            sb.append("\n\t\t[\n\t\t\t\"").append(from[0]);
-            sb.append("\",\n\t\t\t").append(from[1]);
-            sb.append(",\n\t\t\t").append(from[2]);
-            sb.append(",\n\t\t\t\"").append(from[3]);
-            sb.append("\",\n\t\t\t").append(from[4]);
-            sb.append(",\n\t\t\t").append(from[5]);
-            sb.append(",\n\t\t\t[");
+            writer.write("\n\t\t[\n\t\t\t\"");
+            writer.write(from[0]);
+            writer.write("\",\n\t\t\t");
+            writer.write(from[1]);
+            writer.write(",\n\t\t\t");
+            writer.write(from[2]);
+            writer.write(",\n\t\t\t\"");
+            writer.write(from[3]);
+            writer.write("\",\n\t\t\t");
+            writer.write(from[4]);
+            writer.write(",\n\t\t\t");
+            writer.write(from[5]);
+            writer.write(",\n\t\t\t[");
             int j = 0;
             for (String[] to : calls.get(from)) {
-                sb.append("\n\t\t\t\t[\n\t\t\t\t\t\"").append(to[0]);
-                sb.append("\",\n\t\t\t\t\t").append(to[1]).append("\n\t\t\t\t]");
+                writer.write("\n\t\t\t\t[\n\t\t\t\t\t\"");
+                writer.write(to[0]);
+                writer.write("\",\n\t\t\t\t\t");
+                writer.write(to[1]);
+                writer.write("\n\t\t\t\t]");
                 if (++j < calls.get(from).size()) {
-                    sb.append(",");
+                    writer.write(",");
                 }
             }
-            sb.append("\n\t\t\t]\n\t\t]");
+            writer.write("\n\t\t\t]\n\t\t]");
             if (++i < calls.size()) {
-                sb.append(",");
+                writer.write(",");
             }
         }
-        sb.append("\n\t]");
-        sb.append("\n}");
+        writer.write("\n\t]");
+        writer.write("\n}");
+        writer.close();
 
         int exitCode = 0;
         Set<String> phantoms = res.getPhantoms();
@@ -98,12 +110,6 @@ class Cli implements Callable<Integer> {
             }
         }
 
-        if (outputFile == null) {
-            System.out.println(sb.toString());
-        } else {
-            new FileOutputStream(outputFile).write(sb.toString().getBytes(StandardCharsets.UTF_8));
-        }
-
         return exitCode;
     }
 
@@ -111,10 +117,10 @@ class Cli implements Callable<Integer> {
         for (Path p : paths) {
             File f = p.toFile();
             if (!f.exists()) {
-                throw new FileNotFoundException(String.format("Error: %s can't be found", p.toString()));
+                throw new FileNotFoundException(String.format("Error: %s can't be found", p));
             }
             if (!f.isDirectory()) {
-                throw new IllegalArgumentException(String.format("Error: %s is not a directory", p.toString()));
+                throw new IllegalArgumentException(String.format("Error: %s is not a directory", p));
             }
         }
     }
