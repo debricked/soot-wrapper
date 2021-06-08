@@ -5,4 +5,5 @@ RUN mvn -f /vulnfunc/java/common --batch-mode --update-snapshots package
 
 FROM gradle:jre11
 COPY --from=package /vulnfunc/java/common/target/SootWrapper-0.1-jar-with-dependencies.jar /vulnfunc/java/common/target/SootWrapper-0.1.jar
+COPY java/common/*.sh /vulnfunc/java/common/
 COPY java/gradle/*.sh /vulnfunc/java/gradle/
