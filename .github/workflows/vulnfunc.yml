@@ -8,6 +8,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: debricked/vulnerable-functionality/java/maven@v0.5
+    - uses: debricked/vulnerable-functionality/java/maven@v0.6
       with:
         root-pom-directory: 'java/common'

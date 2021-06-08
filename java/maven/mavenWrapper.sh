@@ -7,7 +7,6 @@ if ! [ -d "$1" ] ; then
 fi
 
 pathToCommonDirectory="/vulnfunc/java/common"
-pathToCommonDirectory="/home/rasmus/git/vulnerable-functionality-github/vulnerable-functionality/java/common"
 source $pathToCommonDirectory"/commonWrapper.sh"
 
 projectRootDirectory="${1%/}"
