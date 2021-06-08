@@ -34,7 +34,7 @@ echo "Compiling "$projectRootDirectory
 gradle -q compileJava
 
 cd $cwd
-pathToSootWrapper=$pathToCommonDirectory"/target/SootWrapper-0.1.jar"
+pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
 outputFileName=".debricked-call-graph"
 echo "Running SootWrapper"
 java -jar $pathToSootWrapper -u $projectRootDirectory"/build/classes/java/main" -l $dependencyDir -f $outputFileName
