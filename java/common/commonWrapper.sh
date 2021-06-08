@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-function exitIfNotInstalled() {
+exitIfNotInstalled() {
 	if [ -z "$2" ] ; then
 		name=$1
 	else
@@ -16,7 +16,7 @@ function exitIfNotInstalled() {
 exitIfNotInstalled zip
 exitIfNotInstalled base64
 
-function formatOutput() {
+formatOutput() {
 	if [ -z "$1" ] ; then
 		echo "Error: no path specified to formatOutput"
 		exit 1
