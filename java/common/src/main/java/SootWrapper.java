@@ -127,7 +127,14 @@ public class SootWrapper {
         if (c.isJavaLibraryClass()) {
             return "-";
         }
-        return c.getName().replace('.', '/') + ".java";
+        String className = c.getName();
+        int innerClassIndex = className.indexOf('$');
+        if (innerClassIndex != -1) {
+            // private or anonymous class
+            className = className.substring(0, innerClassIndex);
+        }
+        className = className.replace('.', '/') + ".java";
+        return className;
     }
 
     private static String getParameterClass(Type parameter) {
