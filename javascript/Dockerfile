@@ -10,5 +10,6 @@ RUN pip install -r /vulnfunc/javascript/src/requirements.txt
 RUN npm install -g @persper/js-callgraph
 
 
-COPY github-action.sh /vulnfunc/javascript/
+COPY javascript/github-action.sh /vulnfunc/javascript/
+
 ENTRYPOINT ["bash", "github-action.sh"]
