@@ -3,7 +3,7 @@ set -e
 
 package_dir="${1%/}"
 
-python3 /vulnfunc/javascript/gen_package_cg.py -i package_dir -o cg.json
+python3 /vulnfunc/javascript/src/gen_package_cg.py -i package_dir -o cg.json
 
 
 #echo Testing call graph generator on import_from_inside package 

@@ -8,4 +8,5 @@ RUN ls -l /vulnfunc/javascript/
 RUN ls -l /vulnfunc/javascript/src
 RUN pip install -r /vulnfunc/javascript/src/requirements.txt
 
+
 RUN npm install -g @persper/js-callgraph
