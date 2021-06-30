@@ -7,7 +7,7 @@ let area = function (length, breadth) {
 // Perimeter function
 let perimeter = function (length, breadth) {
     let p = 2 * (length + breadth);
-    console.log('Perimeter of the rectangle is ' + p + ' unit');
+    console.log('Perimeter of the rectangle is ' + p + ' unit!');
 }
   
 // Making all functions available in this
