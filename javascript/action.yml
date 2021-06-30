@@ -9,7 +9,7 @@ inputs:
 runs:
   using: docker
   image: Dockerfile
-  entrypoint: /vulnfunc/javascript/github-actions.sh
+  entrypoint: /vulnfunc/javascript/entrypoint.sh
   args:
     - ${{ inputs.root-packagejson-directory }}
 branding:

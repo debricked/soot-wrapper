@@ -9,4 +9,4 @@ RUN pip install -r /vulnfunc/javascript/src/requirements.txt
 
 RUN npm install -g @persper/js-callgraph
 
-COPY javascript/*.sh /vulnfunc/javascript/
+COPY javascript/entrypoint.sh /vulnfunc/javascript/entrypoint.sh
