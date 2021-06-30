@@ -8,6 +8,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: debricked/vulnerable-functionality/java/maven@v0.8
+    - uses: debricked/vulnerable-functionality/javascript@v1
       with:
-        root-pom-directory: 'java/common'
+        root-packagejson-directory: 'javascript/test/import_from_inside'
+
