@@ -3,6 +3,7 @@ set -e
 
 package_dir="${1%/}"
 
+npm --prefix $package_dir run ci
 python3 /vulnfunc/javascript/src/gen_package_cg.py -i $package_dir -o cg.json
 
 

@@ -10,5 +10,5 @@ jobs:
     - uses: actions/checkout@v2
     - uses: TeodorBucht1729/vulnerable-functionality/javascript@master
       with:
-        root-packagejson-directory: 'javascript/test/import_from_inside'
+        root-packagejson-directory: 'javascript/test/fresh_install'
 
