@@ -15,12 +15,11 @@ jobs:
           python-version: '3.8'
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
-      - name: Install python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r javascript/src/requirements.txt
-          sudo chown -R $USER /usr/local/lib/node_modules
-          npm install -g @persper/js-callgraph
+          sudo npm install -g @persper/js-callgraph
       - name: Test with pytest
         run: |
           pip install pytest
