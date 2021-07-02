@@ -1,0 +1,17 @@
+{
+  "name": "vulnfunc_javascript",
+  "version": "1.0.0",
+  "description": "Extracts the call graph for a JavaScript project.",
+  "main": "index.js",
+  "scripts": {
+    "test": "pytest"
+  },
+  "keywords": [
+    "javascript"
+  ],
+  "author": "Debricked",
+  "license": "GPL-3.0-only",
+  "dependencies": {
+    "@persper/js-callgraph": "1.3.2"
+  }
+}
