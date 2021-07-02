@@ -1,12 +1,13 @@
 import sys
-sys.path.insert(1, "../src/")
+import os
+sp = os.path.dirname(os.path.abspath(__file__)) + "/"
+source_path = sp[:-1]
+source_path = source_path[:(-(source_path[:-1][::-1].find("/") + 1))]
+source_path += "src/"
+sys.path.insert(1, source_path)
 import gen_package_cg
 import json
-import os
 import pytest
-
-# get the path to the script
-sp = os.path.dirname(os.path.abspath(__file__)) + "/"
 
 def test_simple_module():
 

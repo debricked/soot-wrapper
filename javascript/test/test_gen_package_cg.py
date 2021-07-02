@@ -1,11 +1,12 @@
 import sys
-sys.path.insert(1, "../src/")
+import os
+sp = os.path.dirname(os.path.abspath(__file__)) + "/"
+source_path = sp[:-1]
+source_path = source_path[:(-(source_path[:-1][::-1].find("/") + 1))]
+source_path += "src/"
+sys.path.insert(1, source_path)
 import gen_package_cg
 import json
-import os
-
-sp = os.path.dirname(os.path.abspath(__file__)) + "/"
-
 
 def test_import_from_inside():
     gen_package_cg.gen_cg_for_package(sp + "import_from_inside/", "./cg.json")
@@ -45,7 +46,7 @@ def test_recursive_dependencies():
         correct_cg = json.load(f)
 
     for key in correct_cg.keys():
-        correct_cg[key] = [os.path.abspath(x) for x in correct_cg[key]]
+        correct_cg[key] = [sp + x[2:] for x in correct_cg[key]]
         assert sp[:-1] + key[1:] in cg
         assert sorted(cg[sp[:-1] + key[1:]]) == sorted(correct_cg[key])
     
@@ -58,7 +59,7 @@ def test_incorrect_script():
         correct_cg = json.load(f)
 
     for key in correct_cg.keys():
-        correct_cg[key] = [os.path.abspath(x) for x in correct_cg[key]]
+        correct_cg[key] = [sp + x[2:] for x in correct_cg[key]]
         assert sp[:-1] + key[1:] in cg
         assert sorted(cg[sp[:-1] + key[1:]]) == sorted(correct_cg[key])
 
