@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "SootWrapper")
 class Cli implements Callable<Integer> {
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
 
     @CommandLine.Option(names = {"-u", "--user-code"}, description = "Path(s) to user code", required = true)
     ArrayList<Path> userCodePaths;

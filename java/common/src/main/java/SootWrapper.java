@@ -100,6 +100,7 @@ public class SootWrapper {
                 getSignatureString(method),
                 method.getDeclaringClass().isApplicationClass() ? "true" : "false",
                 method.getDeclaringClass().isJavaLibraryClass() ? "true" : "false",
+                method.getDeclaringClass().getName(),
                 getProbableName(method.getDeclaringClass()),
                 Integer.toString(method.getJavaSourceStartLineNumber()),
                 "-1", // todo source end line number

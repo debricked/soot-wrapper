@@ -82,6 +82,19 @@ public class SootWrapperTest {
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
                 String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
+        boolean found = false;
+        for (String[] caller : calls.keySet()) {
+            if (caller[0].equals("Main.method()")) {
+                assertEquals("true", caller[1]);
+                assertEquals("false", caller[2]);
+                assertEquals("Main", caller[3]);
+                assertEquals("Main.java", caller[4]);
+                assertEquals("2", caller[5]);
+                assertEquals("-1", caller[6]);
+                found = true;
+            }
+        }
+        assertTrue(found);
         assertMethodCallsMethods(calls, "Main.method()", new String[]{"Parent.publicParentMethod()"});
         assertMethodCallsMethods(calls, "Parent.publicParentMethod()", new String[]{"Parent.privateParentMethod()"});
         assertMethodCallsMethods(calls, "Parent.privateParentMethod()", new String[]{});
