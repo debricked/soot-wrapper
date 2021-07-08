@@ -53,28 +53,28 @@ class Cli implements Callable<Integer> {
         AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
         Map<String[], Set<String[]>> calls = res.getCallGraph();
         int i = 0;
-        for (String[] from : calls.keySet()) {
+        for (String[] callee : calls.keySet()) {
             writer.write("\n\t\t[\n\t\t\t\"");
-            writer.write(from[0]);
+            writer.write(callee[0]);
             writer.write("\",\n\t\t\t");
-            writer.write(from[1]);
+            writer.write(callee[1]);
             writer.write(",\n\t\t\t");
-            writer.write(from[2]);
+            writer.write(callee[2]);
             writer.write(",\n\t\t\t\"");
-            writer.write(from[3]);
+            writer.write(callee[3]);
             writer.write("\",\n\t\t\t");
-            writer.write(from[4]);
+            writer.write(callee[4]);
             writer.write(",\n\t\t\t");
-            writer.write(from[5]);
+            writer.write(callee[5]);
             writer.write(",\n\t\t\t[");
             int j = 0;
-            for (String[] to : calls.get(from)) {
+            for (String[] caller : calls.get(callee)) {
                 writer.write("\n\t\t\t\t[\n\t\t\t\t\t\"");
-                writer.write(to[0]);
+                writer.write(caller[0]);
                 writer.write("\",\n\t\t\t\t\t");
-                writer.write(to[1]);
+                writer.write(caller[1]);
                 writer.write("\n\t\t\t\t]");
-                if (++j < calls.get(from).size()) {
+                if (++j < calls.get(callee).size()) {
                     writer.write(",");
                 }
             }

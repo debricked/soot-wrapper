@@ -71,10 +71,25 @@ public class SootWrapper {
 
     private static void analyseMethod(Map<String[], Set<String[]>> calls, CallGraph cg, SootMethod m, Set<SootMethod> analysedMethods) {
         analysedMethods.add(m);
-        Set<String[]> targetSignatures = new HashSet<>();
-        Iterator<Edge> edges = cg.edgesOutOf(m);
-        while (edges.hasNext()) {
-            Edge e = edges.next();
+        Set<String[]> sourceSignatures = new HashSet<>();
+        Iterator<Edge> edgesInto = cg.edgesInto(m);
+        while (edgesInto.hasNext()) {
+            Edge e = edgesInto.next();
+            MethodOrMethodContext source = e.getSrc();
+            SootMethod sourceMethod;
+            if (source instanceof MethodContext) {
+                sourceMethod = source.method();
+            } else {
+                sourceMethod = (SootMethod) source;
+            }
+            String[] sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
+            sourceSignatures.add(sourceSignature);
+        }
+        calls.put(getFormattedTargetSignature(m), sourceSignatures);
+
+        Iterator<Edge> edgesOut = cg.edgesOutOf(m);
+        while (edgesOut.hasNext()) {
+            Edge e = edgesOut.next();
             MethodOrMethodContext target = e.getTgt();
             SootMethod targetMethod;
             if (target instanceof MethodContext) {
@@ -82,20 +97,17 @@ public class SootWrapper {
             } else {
                 targetMethod = (SootMethod) target;
             }
-            String[] targetSignature = getFormattedTargetSignature(targetMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
-            targetSignatures.add(targetSignature);
             if (!analysedMethods.contains(targetMethod)) {
                 analyseMethod(calls, cg, targetMethod, analysedMethods);
             }
         }
-        calls.put(getFormattedSourceSignature(m), targetSignatures);
     }
 
-    private static String[] getFormattedTargetSignature(SootMethod method, int lineNumber) {
+    private static String[] getFormattedSourceSignature(SootMethod method, int lineNumber) {
         return new String[] { getSignatureString(method), Integer.toString(lineNumber) };
     }
 
-    private static String[] getFormattedSourceSignature(SootMethod method) {
+    private static String[] getFormattedTargetSignature(SootMethod method) {
         return new String[] {
                 getSignatureString(method),
                 method.getDeclaringClass().isApplicationClass() ? "true" : "false",

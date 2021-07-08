@@ -32,29 +32,37 @@ public class SootWrapperTest {
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
                 String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
-        assertMethodCallsMethods(calls, "Main.main(String[])", new String[]{
-                "classDependency.ClassDependency.<init>()"
-                ,"classDependency.ClassDependency.dependencyMethodCalledFromMain()"
-                ,"jarDependency.JarDependency.<init>()"
-                ,"jarDependency.JarDependency.dependencyMethodCalledFromMain()"
+        assertMethodIsCalledByMethods(calls, "classDependency.ClassDependency.<init>()", new String[]{
+                "Main.main(String[])"
+                ,"Main.unusedUserCodeMethod()"
         });
-        assertMethodCallsMethods(calls, "classDependency.ClassDependency.dependencyMethodCalledFromMain()", new String[]{
-                "classDependency.ClassDependency.nestedMethodCalledFromMethodCalledFromMain()"
+        assertMethodIsCalledByMethods(calls, "classDependency.ClassDependency.dependencyMethodCalledFromMain()", new String[]{
+                "Main.main(String[])"
         });
-        assertMethodCallsMethods(calls, "jarDependency.JarDependency.dependencyMethodCalledFromMain()", new String[]{
-                "jarDependency.JarDependency.nestedMethodCalledFromMethodCalledFromMain()"
+        assertMethodIsCalledByMethods(calls, "jarDependency.JarDependency.<init>()", new String[]{
+                "Main.main(String[])"
+                ,"Main.unusedUserCodeMethod()"
         });
-        assertMethodCallsMethods(calls, "Main.unusedUserCodeMethod()", new String[]{
-                "classDependency.ClassDependency.<init>()"
-                ,"classDependency.ClassDependency.dependencyMethodCalledFromNotMain()"
-                ,"jarDependency.JarDependency.<init>()"
-                ,"jarDependency.JarDependency.dependencyMethodCalledFromNotMain()"
+        assertMethodIsCalledByMethods(calls, "jarDependency.JarDependency.dependencyMethodCalledFromMain()", new String[]{
+                "Main.main(String[])"
         });
-        assertMethodCallsMethods(calls, "classDependency.ClassDependency.dependencyMethodCalledFromNotMain()", new String[]{
-                "classDependency.ClassDependency.nestedMethodCalledFromMethodCalledFromNotMain()"
+        assertMethodIsCalledByMethods(calls, "classDependency.ClassDependency.nestedMethodCalledFromMethodCalledFromMain()", new String[]{
+                "classDependency.ClassDependency.dependencyMethodCalledFromMain()"
         });
-        assertMethodCallsMethods(calls, "jarDependency.JarDependency.dependencyMethodCalledFromNotMain()", new String[]{
-                "jarDependency.JarDependency.nestedMethodCalledFromMethodCalledFromNotMain()"
+        assertMethodIsCalledByMethods(calls, "jarDependency.JarDependency.nestedMethodCalledFromMethodCalledFromMain()", new String[]{
+                "jarDependency.JarDependency.dependencyMethodCalledFromMain()"
+        });
+        assertMethodIsCalledByMethods(calls, "classDependency.ClassDependency.dependencyMethodCalledFromNotMain()", new String[]{
+                "Main.unusedUserCodeMethod()"
+        });
+        assertMethodIsCalledByMethods(calls, "jarDependency.JarDependency.dependencyMethodCalledFromNotMain()", new String[]{
+                "Main.unusedUserCodeMethod()"
+        });
+        assertMethodIsCalledByMethods(calls, "classDependency.ClassDependency.nestedMethodCalledFromMethodCalledFromNotMain()", new String[]{
+                "classDependency.ClassDependency.dependencyMethodCalledFromNotMain()"
+        });
+        assertMethodIsCalledByMethods(calls, "jarDependency.JarDependency.nestedMethodCalledFromMethodCalledFromNotMain()", new String[]{
+                "jarDependency.JarDependency.dependencyMethodCalledFromNotMain()"
         });
         String[] unwantedSignatures = new String[]{
                 "classDependency.ClassDependency.nestedMethodOnlyCalledFromDependencyMethodNotCalled()"
@@ -95,9 +103,8 @@ public class SootWrapperTest {
             }
         }
         assertTrue(found);
-        assertMethodCallsMethods(calls, "Main.method()", new String[]{"Parent.publicParentMethod()"});
-        assertMethodCallsMethods(calls, "Parent.publicParentMethod()", new String[]{"Parent.privateParentMethod()"});
-        assertMethodCallsMethods(calls, "Parent.privateParentMethod()", new String[]{});
+        assertMethodIsCalledByMethods(calls, "Parent.publicParentMethod()", new String[]{"Main.method()"});
+        assertMethodIsCalledByMethods(calls, "Parent.privateParentMethod()", new String[]{"Parent.publicParentMethod()"});
     }
 
     @Test @Disabled
@@ -116,21 +123,29 @@ public class SootWrapperTest {
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
                 String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
-        assertMethodCallsMethods(calls, "UserCode.main(String[])", new String[]{
-                "Dependency.<init>()",
+        assertMethodIsCalledByMethods(calls, "Dependency.<init>()", new String[]{
+                "UserCode.main(String[])"
+        });
+        assertMethodIsCalledByMethods(calls, "Dependency.method()", new String[]{
+                "UserCode.main(String[])"
+        });
+        assertMethodIsCalledByMethods(calls, "Dependency$1PrivateClass.<init>(Dependency)", new String[]{
                 "Dependency.method()"
         });
-        assertMethodCallsMethods(calls, "Dependency.method()", new String[]{
-                "Dependency$1PrivateClass.<init>(Dependency)",
-                "Dependency$1PrivateClass.interfaceMethod()",
-                "Dependency$1.<init>(Dependency)",
-                "Dependency$1.interfaceMethod()",
+        assertMethodIsCalledByMethods(calls, "Dependency$1PrivateClass.interfaceMethod()", new String[]{
+                "Dependency.method()"
         });
-        assertMethodCallsMethods(calls, "Dependency$1PrivateClass.interfaceMethod()", new String[]{
-                "Dependency$1PrivateClass.privateClassMethod()"
+        assertMethodIsCalledByMethods(calls, "Dependency$1.<init>(Dependency)", new String[]{
+                "Dependency.method()"
         });
-        assertMethodCallsMethods(calls, "Dependency$1.interfaceMethod()", new String[]{
-                "Dependency$1.anonymousClassMethod()"
+        assertMethodIsCalledByMethods(calls, "Dependency$1.interfaceMethod()", new String[]{
+                "Dependency.method()"
+        });
+        assertMethodIsCalledByMethods(calls, "Dependency$1PrivateClass.privateClassMethod()", new String[]{
+                "Dependency$1PrivateClass.interfaceMethod()"
+        });
+        assertMethodIsCalledByMethods(calls, "Dependency$1.anonymousClassMethod()", new String[]{
+                "Dependency$1.interfaceMethod()"
         });
     }
 
@@ -145,72 +160,66 @@ public class SootWrapperTest {
             Map<String[], Set<String[]>> calls = res.getCallGraph();
             assertTrue(res.getBadPhantoms().isEmpty(),
                     String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
-            assertMethodCallsMethods(calls, "Cli.main(String[])", new String[]{
-                    "picocli.CommandLine.<init>(Object)"
+            assertMethodIsCalledByMethods(calls, "picocli.CommandLine.<init>(Object)", new String[]{
+                    "Cli.main(String[])"
             });
-            assertMethodCallsMethods(calls, "Cli.checkExistsAndIsDir(Collection)", new String[]{
-                    "java.io.File.exists()"
-                    ,"java.io.FileNotFoundException.<init>(String)"
-                    ,"java.io.File.isDirectory()"
-                    ,"java.lang.IllegalArgumentException.<init>(String)"
+            assertMethodIsCalledByMethods(calls, "java.io.File.exists()", new String[]{
+                    "Cli.checkExistsAndIsDir(Collection)"
             });
-            assertMethodCallsMethods(calls, "SootWrapper.doAnalysis(Collection, Collection)", new String[]{
-                    "soot.G.reset()"
-                    ,"soot.Scene.v()"
-                    ,"soot.Scene.getSootClassPath()"
-                    ,"soot.Scene.extendSootClassPath(String)"
-                    ,"soot.PhaseOptions.setPhaseOption(String, String)"
-                    ,"soot.Main.main(String[])"
+            assertMethodIsCalledByMethods(calls, "soot.G.reset()", new String[]{
+                    "SootWrapper.doAnalysis(Collection, Collection)"
             });
-            assertMethodCallsMethods(calls, "soot.jimple.toolkits.callgraph.CallGraph.edgesOutOf(MethodOrMethodContext)", new String[]{
-                    "soot.jimple.toolkits.callgraph.CallGraph$TargetsOfMethodIterator.<init>(CallGraph, MethodOrMethodContext)" // todo Is this how we want subclass signatures to look?
+            assertMethodIsCalledByMethods(calls, "soot.jimple.toolkits.callgraph.CallGraph$TargetsOfMethodIterator.<init>(CallGraph, MethodOrMethodContext)", new String[]{ // todo Is this how we want subclass signatures to look?
+                    "soot.jimple.toolkits.callgraph.CallGraph.edgesOutOf(MethodOrMethodContext)"
             });
-            assertMethodCallsMethods(calls, "soot.Main.main(String[])", new String[]{
-                    "soot.Main.v()"
-                    ,"soot.Main.run(String[])"
+            assertMethodIsCalledByMethods(calls, "soot.Main.run(String[])", new String[]{
+                    "soot.Main.main(String[])"
             });
-            assertMethodCallsMethods(calls, "soot.Main.run(String[])", new String[]{
-                    "java.lang.System.nanoTime()"
-                    ,"soot.Timers.v()"
-                    ,"soot.Timer.start()"
+            assertMethodIsCalledByMethods(calls, "soot.Timers.v()", new String[]{
+                    "soot.Main.run(String[])"
+            });
+            assertMethodIsCalledByMethods(calls, "soot.SootMethod.getDeclaringClass()", new String[]{
+                    "SootWrapper.getFormattedTargetSignature(SootMethod)"
+                    ,"SootWrapper.doAnalysis(Collection, Collection)"
+                    ,"SootWrapper.getSignatureString(SootMethod)"
             });
         } catch (Exception e) {
             fail(e.getMessage());
         }
     }
 
-    private void assertMethodCallsMethods(Map<String[], Set<String[]>> calls, String caller, String[] targets) {
+    private void assertMethodIsCalledByMethods(Map<String[], Set<String[]>> calls, String callee, String[] callers) {
         boolean found = false;
         String[] index = null;
         for (String[] callGraphCaller : calls.keySet()) {
-            if (callGraphCaller[0].equals(caller)) {
+            if (callGraphCaller[0].equals(callee)) {
                 found = true;
                 index = callGraphCaller;
                 break;
             }
         }
         if (!found) {
-            StringBuilder callers = new StringBuilder();
+            StringBuilder callees = new StringBuilder();
             for (String[] callerString : calls.keySet()) {
-                callers.append(callerString[0]).append(", ");
+                callees.append(callerString[0]).append(", ");
             }
-            fail(String.format("Failed asserting that %s is a caller. Callers: %s\n", caller, callers));
+            fail(String.format("Failed asserting that %s is a callee. Callees: %s\n", callee, callees));
         }
         assertNotNull(index);
-        for (String target : targets) {
+        for (String caller : callers) {
             found = false;
-            for (String[] targetsCalled : calls.get(index)) {
-                if (targetsCalled[0].equals(target)) {
+            for (String[] calledBy : calls.get(index)) {
+                if (calledBy[0].equals(caller)) {
                     found = true;
                     break;
                 }
             }
             if (!found) {
-                StringBuilder targetsString = new StringBuilder();
-                for (String[] targetString : calls.get(index)) {
-                    targetsString.append(targetString[0]).append(", ");
+                StringBuilder sourcesString = new StringBuilder();
+                for (String[] sourceString : calls.get(index)) {
+                    sourcesString.append(sourceString[0]).append(", ");
                 }
-                fail(String.format("Failed asserting that %s calls %s. Set of called methods: %s\n", caller, target, targetsString));
+                fail(String.format("Failed asserting that %s is called by %s. Set of calling methods: %s\n", callee, caller, sourcesString));
             }
         }
     }
