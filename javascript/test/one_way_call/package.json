@@ -1,5 +1,5 @@
 {
-  "name": "simple_module",
+  "name": "one_way_call",
   "version": "1.0.0",
   "description": "",
   "main": "script.js",

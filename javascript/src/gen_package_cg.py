@@ -8,6 +8,7 @@ import subprocess
 import sys
 import getopt
 from intervaltree import IntervalTree 
+from pathlib import Path
 
 
 def find_source_files(package_folder):
@@ -184,7 +185,7 @@ def parse_files(script_paths):
                 name = "anonymous"
             footprint = program_path + "/" + name + "_from_" + str(node.loc.start.line) + "_to_" + str(node.loc.end.line)
 
-            symbol = {"name": name, "file": program_path, "Line_start": node.loc.start.line, \
+            symbol = {"name": name, "file": file_path, "Line_start": node.loc.start.line, \
             "Line_end" : node.loc.end.line, "type" : node.type, "footprint" : footprint, \
             "start": (node.loc.start.line, node.loc.start.column), "end" : (node.loc.end.line, node.loc.end.column),\
             "range" : node.range}
@@ -199,7 +200,36 @@ def parse_files(script_paths):
     
     # loop through all the files to be parsed and parse them
     for prog in script_paths:
-        program_path = prog
+
+        # create path object to search for package.json 
+        p = Path(prog)
+        # make the path absolute
+        p = p.resolve()
+
+        # save the original absolute path
+        program_path = str(p)
+        file_path = str(p)
+        
+        # look further up in the file tree until package.json is found 
+        if p.is_file():
+            p = p.parent
+
+        while p / "package.json" not in p.iterdir() and p != Path("/"):
+            p = p.parent
+
+        # exit if we haven't found package.json
+        assert p / "package.json" in p.iterdir(), "package.json not found for " + prog 
+        
+        # read the name from package.json
+        with open(str(p / "package.json"), "r") as f:
+            package_json = json.load(f)
+        # read the name
+        name = package_json['name']
+        # remove the first part of the path
+        program_path = program_path[len(str(p)):]
+        # add the package name instead
+        program_path = name + program_path
+
         with open(prog, 'r') as f:
             program = f.read()
         # handle hashbang/shebang by replacing the first line with blank spaces if it starts with #!
@@ -219,7 +249,7 @@ def parse_files(script_paths):
         program_rows = program.split("\n")
         total_number_lines = len(program_rows) + 1
         
-        symbol = {"name": "global", "file": program_path, "Line_start": 1, \
+        symbol = {"name": "global", "file": file_path, "Line_start": 1, \
             "Line_end" : total_number_lines+1, "type" : "global scope", "footprint" : program_path + "/global", \
             "start": (1, 0), "end" : (total_number_lines, len(program_rows[-1])),\
             "range" : (0, len(program))}

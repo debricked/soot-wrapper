@@ -1,11 +1,11 @@
 {
-    "./incorrect_dep/library.js/anonymous_from_2_to_5": [],
-    "./incorrect_dep/library.js/anonymous_from_8_to_11": [],
-    "./incorrect_dep/script.js/fun_from_14_to_18": [
-        "./incorrect_dep/library.js/anonymous_from_2_to_5",
-        "./incorrect_dep/library.js/anonymous_from_8_to_11"
+    "incorrect_dep/library.js/anonymous_from_2_to_5": [],
+    "incorrect_dep/library.js/anonymous_from_8_to_11": [],
+    "incorrect_dep/script.js/fun_from_14_to_18": [
+        "incorrect_dep/library.js/anonymous_from_2_to_5",
+        "incorrect_dep/library.js/anonymous_from_8_to_11"
     ],
-    "./incorrect_dep/script.js/global": [
-        "./incorrect_dep/script.js/fun_from_14_to_18"
+    "incorrect_dep/script.js/global": [
+        "incorrect_dep/script.js/fun_from_14_to_18"
     ]
 }

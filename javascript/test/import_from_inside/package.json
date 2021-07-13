@@ -1,5 +1,5 @@
 {
-  "name": "simple_module",
+  "name": "import_from_inside",
   "version": "1.0.0",
   "description": "",
   "main": "script.js",
