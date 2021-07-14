@@ -34,9 +34,14 @@ def test_ignore():
     gen_package_cg.gen_cg_for_package(sp + "ignore_specific_keyword/", "./cg.json")
     with open("cg.json", "r") as f:
         cg = json.load(f)
-    assert "ignore_specific_keyword/test_something.js/global" not in cg
-    assert "ignore_specific_keyword/tests/script.js/global" not in cg
+    assert "test_answer.truth" in os.listdir(sp + "ignore_specific_keyword/"), "truth file missing"
+    with open(sp + "ignore_specific_keyword/test_answer.truth", "r") as f:
+        correct_cg = json.load(f)
 
+    for key in correct_cg.keys():
+        assert key in cg
+        assert sorted(cg[key]) == sorted(correct_cg[key])
+        
 def test_recursive_dependencies():
     gen_package_cg.gen_cg_for_package(sp + "recursive_dependencies/", "./cg.json")
     with open("cg.json", "r") as f:

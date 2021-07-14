@@ -30,11 +30,13 @@ def find_source_files(package_folder):
     source_code_in_package = glob.glob(package_folder + "*.js")
     
     # loop through all subdirectories and add all .js files there recursively
-    for subdir in filter(lambda x: os.path.isdir(package_folder + x) and x not in SOURCE_IGNORE, package_dir):
-        source_code_in_package.extend(glob.glob(package_folder+subdir+"**/*.js", recursive=True))
+   # for subdir in filter(lambda x: os.path.isdir(package_folder + x) and x not in SOURCE_IGNORE, package_dir):
+    for subdir in [x for x in package_dir if os.path.isdir(package_folder + x) and x not in SOURCE_IGNORE]:
+        js_glob_path = os.path.join(package_folder, subdir, "**/*.js")
+        source_code_in_package.extend(glob.glob(js_glob_path, recursive=True))
 
     # filter out all paths that contain "test" after the package folder
-    source_code_in_package = list(filter(lambda x: "test" not in x[len(package_folder):], source_code_in_package))
+    source_code_in_package = [x for x in source_code_in_package if "test" not in x[len(package_folder):]]
     return source_code_in_package
 
  
@@ -89,7 +91,7 @@ def gen_cg_for_package(package_folder, output_file):
         if len(dependencies) == 0:
             cg_files = source_code_in_curr_package
             # filter away the files not being parsable
-            cg_files = list(filter(lambda x: x not in incorrect_syntax_files, cg_files))
+            cg_files = [x for x in cg_files if x not in incorrect_syntax_files]
             gen_cg_for_files(cg_files, [])
 
         # Loop through all dependencies and compute the call graph for this package
@@ -124,8 +126,8 @@ def gen_cg_for_package(package_folder, output_file):
                     parse_files([curr_folder + "node_modules/" + dep + ".js"])
                     cg_files_source = source_code_in_curr_package
                     cg_files_dep = [curr_folder + "node_modules/" + dep + ".js"]
-                    cg_files_source = list(filter(lambda x: x not in incorrect_syntax_files, cg_files_source))
-                    cg_files_dep = list(filter(lambda x: x not in incorrect_syntax_files, cg_files_dep))
+                    cg_files_source = [x for x in cg_files_source if x not in incorrect_syntax_files]
+                    cg_files_dep = [x for x in cg_files_dep if x not in incorrect_syntax_files]
                     gen_cg_for_files(cg_files_source, cg_files_dep)
 
                 # check if the imported package is a folder
@@ -135,8 +137,8 @@ def gen_cg_for_package(package_folder, output_file):
                     cg_files_dep = find_source_files(curr_folder + "node_modules/" + dep + "/")
                     parse_files(cg_files_dep)
                     cg_files_source = source_code_in_curr_package
-                    cg_files_source = list(filter(lambda x: x not in incorrect_syntax_files, cg_files_source))
-                    cg_files_dep = list(filter(lambda x: x not in incorrect_syntax_files, cg_files_dep))
+                    cg_files_source = [x for x in cg_files_source if x not in incorrect_syntax_files]
+                    cg_files_dep = [x for x in cg_files_dep if x not in incorrect_syntax_files]
                     gen_cg_for_files(cg_files_source, cg_files_dep)
 
                     # generate cg recursively for the found package
