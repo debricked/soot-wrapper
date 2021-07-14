@@ -6,7 +6,7 @@ if ! [ -d "$1" ] ; then
 	exit 1
 fi
 
-$pathToCommonDirectory = "/vulnfunc/java/common"
+$pathToCommonDirectory = "/vulnfunc/common"
 . $pathToCommonDirectory"/commonWrapper.sh"
 
 projectRootDirectory="${1%/}"
