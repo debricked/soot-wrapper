@@ -30,7 +30,7 @@ fi
 
 exitIfNotInstalled python3
 
-outputFileName=".debricked-call-graph"
+outputFileName=".debricked-call-graph-javascript"
 
 # Run the actual python script that generates the call graph
 echo "Running gen_package_cg"

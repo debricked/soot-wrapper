@@ -22,7 +22,7 @@ echo "Compiling "$projectRootDirectory
 mvn -q -B -f $projectRootDirectory compile --fail-at-end
 
 pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
-outputFileName=".debricked-call-graph"
+outputFileName=".debricked-call-graph-java"
 echo "Running SootWrapper"
 java -jar $pathToSootWrapper -u $projectRootDirectory"/target/classes" -l $dependencyDir -f $outputFileName
 
