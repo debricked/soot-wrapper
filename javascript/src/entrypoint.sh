@@ -21,12 +21,14 @@ package_dir="${1%/}"
 
 # Check if package-lock.json is provided, this is preferable
 # since we then run npm ci instead of npm instal. 
-if ! [ -e "$1/package-lock.json" ] ; then
-    echo "Warning, package-lock.json is missing, proceding with only package.json"
-    npm --prefix $package_dir install
-else
+if [ -e "$1/package-lock.json" ] ; then
     npm --prefix $package_dir ci
-fi 
+elif [ -e "$1/yarn.lock"] ; then
+    yarn --cwd $package_dir install 
+else
+    echo "Warning, neither yarn.lock nor package-lock.json was found, proceeding with just package.json"
+    npm --prefix $package_dir install
+fi
 
 exitIfNotInstalled python3
 
