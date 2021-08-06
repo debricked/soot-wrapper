@@ -20,6 +20,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r javascript/src/requirements.txt
           sudo npm install -g @persper/js-callgraph
+          sudo apt-get install dos2unix
       - name: Test with pytest
         run: |
           pip install pytest
