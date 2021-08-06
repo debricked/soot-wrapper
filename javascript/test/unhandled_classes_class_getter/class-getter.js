@@ -5,14 +5,14 @@ class Rectangle {
   }
   // Getter
   get area() {
-    return this.calcArea();
+    return this.calc_area();
   }
   // Method
-  calcArea() {
+  calc_area() {
     return this.height * this.width;
   }
 }
 
-const square = new Rectangle(10, 10);
+const square = new Rectangle(12, 5);
 
 console.log(square.area);

@@ -3,7 +3,6 @@ import os
 import json
 import esprima
 import re
-import glob
 import subprocess
 import sys
 import getopt
@@ -11,8 +10,9 @@ from esprima.esprima import parse
 from intervaltree import IntervalTree 
 from pathlib import Path
 import warnings
-import demoji
 import time
+import multiprocessing as mp
+import pickle
 
 def find_source_files(package_folder):
     """ find_source_files takes a root package folder and returns a list of 
@@ -42,7 +42,21 @@ def find_source_files(package_folder):
     source_code_in_package = [x for x in source_code_in_package if "test" not in x[len(package_folder):] and Path(x).is_file()]
     return source_code_in_package
 
- 
+def slice_data(data, nprocs):
+    """ slice_data splits a list in nprocs almost equally long lists.
+
+    Paramaters:
+    data (list[]): The list to be partitioned.
+    nprocs (int): The number of lists data should be partitioned to.
+
+    Returns:
+    list[list[]]: A list with all the partitions. 
+    """
+    slices = [[] for i in range(nprocs)]
+    for i in range(len(data)):
+        slices[i % nprocs].append(data[i])
+    return slices
+
 def gen_cg_for_package(package_folder, output_file):
     start = time.time()
     """" gen_cg_for_package calculates the call graph for the package in
@@ -69,19 +83,30 @@ def gen_cg_for_package(package_folder, output_file):
     global esprima_time; esprima_time = 0
     
 
-    global cg; cg = {}
+    cg = {}
+    cg_calls = []
     global symbol_ranges_to_footprint; symbol_ranges_to_footprint = {}
     global interval_trees; interval_trees = {}
     global incorrect_syntax_files; incorrect_syntax_files = []
     global dep_graph; dep_graph = {}
     global files_in_packages; files_in_packages = []
     global files_to_dep; files_to_dep = {}
+    global package_to_files; package_to_files = {}
+    global time_per_package; time_per_package = {}
+    global file_size; file_size = {}
+    global space_time; space_time = []
     visited_packages = set()
     parsed_packages = set()
 
     # recursive function that will be called for each package in the dep-tree
     def rec_gen_cg(rec_package_folder):
        # print("Currently calculating call graph for", rec_package_folder, "and its dependencies.")
+
+        # make sure that the current package is not visited again
+        visited_packages.add(rec_package_folder) 
+
+        #create an empty set in the dependency graph
+        dep_graph[rec_package_folder] = set()
 
         # load dependencies
         try:
@@ -91,18 +116,15 @@ def gen_cg_for_package(package_folder, output_file):
         except (FileNotFoundError, KeyError) as e:
             # package.json is not necesary, but in this case we assume the package has no dependencies
             dependencies = []
-        
-        # make sure that the current package is not visited again
-        visited_packages.add(rec_package_folder) 
 
-        #create an empty set in the dependency graph
-        dep_graph[rec_package_folder] = set()
-
-        # add the source files of the current package to 
+        # add the source files of the current package to various global data containers
         source_code_in_curr_package = find_source_files(rec_package_folder)
         files_in_packages.extend(source_code_in_curr_package)
         for script in source_code_in_curr_package:
             files_to_dep[script] = rec_package_folder
+            if rec_package_folder not in package_to_files:
+                package_to_files[rec_package_folder] = []
+            package_to_files[rec_package_folder].append(script)
     
 
         # Loop through all dependencies and explore them recursively
@@ -138,6 +160,7 @@ def gen_cg_for_package(package_folder, output_file):
                     dep_found = True
                     files_in_packages.append(str(node_modules / (dep + ".js")))
                     files_to_dep[str(node_modules / (dep + ".js"))] = str(node_modules / (dep + ".js"))
+                    package_to_files[str(node_modules / (dep + ".js"))] = [str(node_modules / (dep + ".js"))]
                 
                 # check if the imported package is a folder
                 elif (node_modules / dep).exists():
@@ -161,48 +184,187 @@ def gen_cg_for_package(package_folder, output_file):
     rec_gen_cg(package_folder)
 
     print("Begin parsing")
-    # parse all files
-    parse_files()
 
-    # remove all files that weren't parseable
-    files_in_packages = [x for x in files_in_packages if x not in incorrect_syntax_files]
-  #  print("Files in packages", files_in_packages)
+    # parse all files in parallell
+
+    nprocs = mp.cpu_count()
+    pool = mp.Pool(processes=nprocs)
+
+    parse_time_start = time.time()
+
+    if os.path.isfile("saved_parse.p") and False:
+        parsed = pickle.load( open("saved_parse.p", "rb") )
+        interval_trees = parsed['interval_trees']
+        symbol_ranges_to_footprint = parsed['symbol_ranges_to_footprint']
+        incorrect_syntax_files = parsed['incorrect_syntax_files']
+        file_size = parsed['file_size']
+    else:
+        
+        slices = slice_data(files_in_packages, nprocs)
+        multi_result = [pool.apply_async(parse_files, (inp, )) for inp in slices]
+        for p in multi_result:
+            (p_int_tree, p_range_to_symbol, p_incorrect_syntax, p_file_size) = p.get()
+            interval_trees.update(p_int_tree)
+            symbol_ranges_to_footprint.update(p_range_to_symbol)
+            incorrect_syntax_files.extend(p_incorrect_syntax)
+            file_size.update(p_file_size)
+        parsed = {}
+        parsed['interval_trees'] = interval_trees
+        parsed['symbol_ranges_to_footprint'] = symbol_ranges_to_footprint
+        parsed['incorrect_syntax_files'] = incorrect_syntax_files
+        parsed['file_size'] = file_size
+        pickle.dump( parsed, open("saved_parse.p", "wb") )
+
+    print("Parsing done, beginning to generate call graph")
+
+    parse_time_end = time.time()
+    parse_time = parse_time_end - parse_time_start
+
     # generate the call graph
-    gen_cg_for_files()
 
-  #  print(cg)
+    pool.close()
+    pool.join()    
+
+    pool = mp.Pool(processes=nprocs)
+
+    cg_package_vis = set()
+
+    # cg_memory is the targetet size in bytes for all the files in each js-callgraph run
+    cg_memory = 2500000
+
+    # calculate internal cg edges for large projects
+
+    print("Calculating all internal edges")
+
+    for package in package_to_files:
+        total_package_memory = 0
+        for file in package_to_files[package]:
+            if file in file_size:
+                total_package_memory += file_size[file]
+        if total_package_memory >= cg_memory // 2:
+            cg_calls.append(package_to_files[package])
+        
+        print("Memory for", package, "is", total_package_memory)
+
+    print("Done calculating internal edges")
+
+    def package_visitor(curr_main_package):
+        
+        print("Currently generating call graph for", curr_main_package, "and its dependencies")
+
+        cg_package_vis.add(curr_main_package)
+        deps = list(dep_graph[curr_main_package])
+
+        # dep_files consists of all the files in the direct dependencies
+
+        dep_files = []
+        for dep in deps:
+            if dep in package_to_files:
+                # dep will not be in package_to_files if the package is empty of .js-files
+                dep_files.extend(package_to_files[dep])
+
+        dep_files = [x for x in dep_files if x not in incorrect_syntax_files]
+
+        # check if curr_main_package contains any files
+        if curr_main_package in package_to_files:
+            curr_package_files = package_to_files[curr_main_package]
+        else:
+            curr_package_files = []
+
+        curr_package_files = [x for x in curr_package_files if x not in incorrect_syntax_files]
+
+        # we can split the current main package curr_memory tracks how much memory we fill
+        # for the gen_cg_for_files - call. The strategu consists of filling half that
+        # memory with the files from the curr_main_package and half of it with ofther files.
+        # This could probably be optimized by analysing the enire dep and main package size.
+
+        curr_memory = 0
+        last_path_i = 0
+        source_memory = 0
+        for path_i, path in enumerate(curr_package_files):
+            curr_memory += file_size[path]
+            source_memory += file_size[path]
+            if curr_memory >= cg_memory // 2 or path_i == len(curr_package_files)-1:
+                last_dep_i = 0
+                dep_memory = 0
+                if len(dep_files) == 0:
+                    cg_calls.append(curr_package_files[last_path_i:path_i+1])
+                for dep_i, dep_path in enumerate(dep_files):
+                    curr_memory += file_size[dep_path]
+                    dep_memory += file_size[dep_path]
+                    if curr_memory >= cg_memory or dep_i == len(dep_files)-1:
+                        cg_calls.append(curr_package_files[last_path_i:path_i+1] + dep_files[last_dep_i:dep_i+1])
+                        last_dep_i = dep_i+1
+                        curr_memory -= dep_memory
+                        dep_memory = 0
+                last_path_i = path_i+1
+                curr_memory -= source_memory
+                curr_memory = 0
+
+        for dep in deps:
+            if dep not in cg_package_vis:
+                package_visitor(dep)
+
+    # call package_visitor that recursively exploroes the dependency graphs and
+    # adds the calls to gen_cg_for_files in the list cg_calls 
+    package_visitor(package_folder)
+
+    # run the calls in parallell
+    multi_result = [pool.apply_async(gen_cg_for_files, (inp, )) for inp in cg_calls]
+    for p_res in multi_result:
+        p_cg = p_res.get()
+        if p_cg != None:
+            # add the results from single calls to cg
+            for key in p_cg:
+                if key in cg:
+                    cg[key] = list(set(cg[key]).union(set(p_cg[key])))
+                else:
+                    cg[key] = p_cg[key]
+
+    pool.close()
+    pool.join()    
 
     with open(output_file, "w") as f:
         f.write(json.dumps(cg, indent=4, sort_keys=True))
 
     end = time.time()
+
+    for partial_cg in glob.glob("partial_cg*.json"):
+        os.remove(partial_cg)
+
     print("Total time:", end - start)
-    print("Parse time:", parse_time, parse_time / (end - start), "% of the total time")
-    print("CG time:", cg_time, cg_time / (end - start), "% of the total time")
-    print("Esprima time:",esprima_time, esprima_time/parse_time, "% of the total parse time")
-    
+    print("Parse time:", parse_time, parse_time / (end - start) * 100, "% of the total time")
 
 
-def parse_files():
-    start = time.time()
+def parse_files(source_files):
+  
     """ parse_files takes a list of files and parses them. The parsing consists of
         finding all functions and saving them in an Interval Tree and the dict
-        symbol_ranges_to_footprint. It also saves all uparsable files in 
-        incorrect_syntax_files. 
+        symbol_ranges_to_footprint. It also saves all unparsable files in 
+        incorrect_syntax_files and adds an artificial "global" ast node. 
 
     Paramaters:
-    script_paths (list[string]): A list with all the paths to the files to be parsed.
+    source_files (list[string]): A list with all the paths to the files to be parsed.
 
     Returns:
-    void
+    (dict, dict, list[string], dict)
+
+    string -> IntervalTree dict where an IntervalTree is stored
+    for each file.
+
+    string -> (int, int) -> string dict that saves
+    the symbol footprints for each file and range (i.e. the column if the entire
+    file was written on a single row).
+
+    a list with all the files that caused parsing errors.
+
+    string -> int dict that saves the number of bytes each file occupates. 
     """
 
-    global interval_trees
-    global symbol_ranges_to_footprint
-    global incorrect_syntax_files
-    global parse_time
-    global esprima_time
-    global files_in_packages
+    interval_trees = {}
+    symbol_ranges_to_footprint = {}
+    incorrect_syntax_files = []
+    file_size = {}
 
     program_path = ""
 
@@ -215,25 +377,22 @@ def parse_files():
                 name = node.id.name
             else:
                 name = "anonymous"
-            footprint = program_path + "/" + name + "_from_" + str(node.loc.start.line) + "_to_" + str(node.loc.end.line)
+
+            footprint = program_path + "/" + name + "_at_" + str(node.loc.start.line) + ":" + str(node.loc.start.column)
 
             symbol = {"footprint" : footprint, "range" : node.range, "file": file_path}
             # check if we have visited this file before, if not create a new IntervalTree
             if symbol['file'] not in interval_trees:
                 interval_trees[symbol['file']] = IntervalTree()
                 symbol_ranges_to_footprint[symbol['file']] = {}
-            # add the function to the tree
-            interval_trees[symbol['file']].addi(symbol['range'][0], symbol['range'][1], symbol)
+            # add the function to the tree, we use symbol['range'][1]+1 in since the intervals are
+            # non inclusive at the right limit, but inclusive for the left limit. So when we query
+            # the interval tree it is as though we have inclusion at both ends. 
+            interval_trees[symbol['file']].addi(symbol['range'][0], symbol['range'][1]+1, symbol)
             symbol_ranges_to_footprint[symbol['file']][tuple(symbol['range'])] = symbol['footprint']
 
-    missing_packagejson_warning_done = False
-
-    even = 0
     # loop through all the files to be parsed and parse them
-    for prog_nbr, prog in enumerate(files_in_packages):
-        if prog_nbr/len(files_in_packages) > even:
-            print(prog_nbr/len(files_in_packages), "% of the files have been parsed")
-            even += 0.01
+    for prog_nbr, prog in enumerate(source_files):
 
         p = Path(prog)
         p = p.resolve()
@@ -241,17 +400,16 @@ def parse_files():
         program_path = str(p)
 
         package = Path(files_to_dep[prog])
-    
-        with open(str(package / "package.json"), "r") as f:
-            package_json = json.load(f)
-        # read the name
         try:
-            name = package_json['name']
-        except KeyError:
-            if not missing_packagejson_warning_done:
-                warnings.warn("name not found in package.json for " + str(p) + " using folder name instead")
-                missing_packagejson_warning_done = True
-            name = p.name
+            with open(str(package / "package.json"), "r") as f:
+                package_json = json.load(f)
+                name = package_json['name']
+        except (FileNotFoundError, KeyError) as e:
+          #  if not missing_packagejson_warning_done:
+            warnings.warn("package-json not found or name not found in package.json for " + str(p) + " using folder name instead")
+            #    missing_packagejson_warning_done = True
+            name = package.name
+  
         # remove the first part of the path
         program_path = program_path[len(str(package)):]
         # add the package name instead
@@ -264,26 +422,20 @@ def parse_files():
         with open(prog, encoding='utf-8') as f:
             program = f.read()
 
-        
         # handle hashbang/shebang by replacing the first line with blank spaces if it starts with #!
         program = re.sub('^#!(.*)', lambda x: len(x.group(0))*" ", program)
+
         # use esprima to parse the module. When each node is created filter_nodes is called.
         # filter_nodes checks if the node is a function and then stores it in the intervaltree.
         # and in symbol_ranges_to_footprint
-        esprima_start = time.time()
         try:
             esprima.parseModule(program, {"loc":True, "range": True}, filter_nodes)
         except esprima.error_handler.Error:
-            warnings.warn(prog + " is not correctly written javascript, will ignore it from now on")
+            warnings.warn("Parser is not able to parse " + prog + ", will ignore it from now on")
             incorrect_syntax_files.append(prog)
             continue
-        esprima_end = time.time()
-
-        esprima_time += (esprima_end - esprima_start)
 
         # add artificial node for the entire script named global
-        program_rows = program.split("\n")
-        total_number_lines = len(program_rows) + 1
         
         symbol = {"file": file_path, "footprint" : program_path + "/global", "range" : (0, len(program))}
         # check if we have visited this file before, if not create a new IntervalTree
@@ -292,55 +444,56 @@ def parse_files():
                 interval_trees[symbol['file']] = IntervalTree()
                 symbol_ranges_to_footprint[symbol['file']] = {}
             # add the function to the tree
-            interval_trees[symbol['file']].addi(symbol['range'][0], symbol['range'][1], symbol)
+            interval_trees[symbol['file']].addi(symbol['range'][0], symbol['range'][1]+1, symbol)
             symbol_ranges_to_footprint[symbol['file']][tuple(symbol['range'])] = symbol['footprint']
         except ValueError:
             warnings.warn("Unable to add global node to " + symbol['footprint'] + " will ignore it from now on")
             incorrect_syntax_files.append(prog)
-    end = time.time()
-    parse_time += (end - start)
-            
+            continue
 
+        p = Path(prog)
+        p = p.resolve()
+        file_size[prog] = p.stat().st_size
     
-def gen_cg_for_files():
-    start = time.time()
-    """ gen_cg_for_files calls js-callgraph with a subprocess and adds the edges to
-        the global variable cg.
+    return (interval_trees, symbol_ranges_to_footprint, incorrect_syntax_files, file_size)
+    
+def gen_cg_for_files(all_cg_files):
+    """ gen_cg_for_files calls js-callgraph with a subprocess and returns
+    the edges. 
 
     Paramaters:
-    source_file_paths (list[string]): All the paths to the source code in the 
-    soruce package
-    
-    dep_files_paths (list[string]): All the paths to the source code in the
-    dependency package
+    all_cg_files (list[string]): All the paths to the source code 
 
     Returns:
-    void
+    cg (dict): A string -> list[string] dict that saved the edges in an
+    adjecency list form. 
     """
-    global cg 
+    cg  = {}
     global symbol_ranges_to_footprint
     global cg_time
-    global files_in_packages
     global files_to_dep
+    global interval_trees
+    global incorrect_syntax_files
+    global file_size
 
     def symbol_containing_call(source_call):
         # returns the symbol that contains the source_call, this is done by taking
         # all functions containing the call and then selecting the smallest one since 
         # this one must be the one directly containing the call
-        call_mid_point = (source_call['range']['start'] + source_call['range']['end'])//2
 
-        # pick out all functions containing the call 
-        # and pick the smallest interval
-        functions_over_call = list(map(lambda x: x.data, interval_trees[source_call['file']][call_mid_point]))
+        # pick out all functions containing the call by intersecting all intervals
+        # containing the the start and end of the call and pick the smallest interval
+        functions_over_call = list(map(lambda x: x.data, \
+            interval_trees[source_call['file']][source_call['range']['start']] & \
+            interval_trees[source_call['file']][source_call['range']['end']]))
  
         min_covering_function = min(functions_over_call, key = lambda x: x['range'][1] - x['range'][0])
 
         return min_covering_function['footprint']
 
     def target_search(target_call):
-        #print("Target call:", target_call)
-        #print("Parsed ranges and footprints:", symbol_ranges_to_footprint)
         # returns the exact function corresponding to the specific target function
+        
         if target_call['file'] == 'Native':
             return 'Native'
         try:
@@ -349,46 +502,61 @@ def gen_cg_for_files():
             warnings.warn("Javascript and python has probably parsed " + target_call['file'] + " differently, ignoring the calls to this file")
             return 'Native'
 
+    
+    all_cg_files = [x for x in all_cg_files if x not in incorrect_syntax_files]
 
-    # if all files are incorrect we should return immidetely, elsewise we will read the old
+    # print the total memory used in the js-callgraph call
+    tot_memory = 0
+    for file in all_cg_files:
+        tot_memory += file_size[file]
+    print("Total memory for the cg run:", tot_memory / 1000, "kB")
+
+    # if all files are incorrect we should return immediately, elsewise we will read the old
     # partial_cg.json
-    if len(files_in_packages) == 0:
-        end = time.time()
-        cg_time += (end - start)
+    if len(all_cg_files) == 0:
         return
 
     # Call js-callgraph which is an open source static call graph generations tool
     # implementing the approximate call graph algorithm.
     cmd = ["js-callgraph", "--cg"]
-    cmd.extend(files_in_packages)
-    cmd.extend(["--output", "partial_cg.json"])
-    # ignore output 
-    subprocess.run(cmd, stdout=subprocess.DEVNULL)
+    cmd.extend(all_cg_files)
+    cmd.extend(["--output", "partial_cg_" + str(os.getpid()) + ".json"])
 
-    with open("partial_cg.json", "r") as f:
-        partial_cg = json.load(f)
+    print("Starting node cg process...")
 
-#    print(partial_cg)
+    print("Number of files:", len(all_cg_files))
+
+    completed_process = subprocess.run(cmd, stdout=subprocess.DEVNULL)
+ 
+    print("Done with node cg process...")
+
+    if not completed_process.returncode: 
+        with open("partial_cg_" + str(os.getpid()) + ".json", "r") as f:
+            partial_cg = json.load(f)
+    else:
+        # return None if the call graph generatin failed
+        return None
+
     # loop over all the edges found and add them to cg.
     for call in partial_cg:
-        # check if the call is from files that we have 
         # check if the call is in the wrong direction, if so, skip it
-        
-        if call['target']['file'] != 'Native':
-            target_in_dep = files_to_dep[call['target']['file']] in dep_graph[files_to_dep[call['source']['file']]]
-            same_package = files_to_dep[call['target']['file']] == files_to_dep[call['source']['file']]
-            if not target_in_dep and not same_package:
-                continue
-        source_symbol = symbol_containing_call(call['source'])
-        target_symbol = target_search(call['target'])
+        try:
+            if call['target']['file'] != 'Native':
+                target_in_dep = files_to_dep[call['target']['file']] in dep_graph[files_to_dep[call['source']['file']]]
+                same_package = files_to_dep[call['target']['file']] == files_to_dep[call['source']['file']]
+                if not target_in_dep and not same_package:
+                    continue
+            source_symbol = symbol_containing_call(call['source'])
+            target_symbol = target_search(call['target'])
 
-        if source_symbol not in cg:
-            cg[source_symbol] = []
-        if target_symbol != "Native" and target_symbol not in cg[source_symbol]:
-            cg[source_symbol].append(target_symbol)
+            if source_symbol not in cg:
+                cg[source_symbol] = []
+            if target_symbol != "Native" and target_symbol not in cg[source_symbol]:
+                cg[source_symbol].append(target_symbol)
+        except ValueError:
+            warnings.warn("Was not able to find enclosing function for \n" + str(call) + "\n ignoring this call. The underlaying reason is probably that python and javascript have parsed it differently.")
 
-    end = time.time()
-    cg_time += (end - start)
+    return cg
     
     
 

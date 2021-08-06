@@ -1,25 +1,25 @@
 {
-    "ignore_specific_keyword/library.js/anonymous_from_2_to_5": [],
-    "ignore_specific_keyword/library.js/anonymous_from_8_to_11": [],
-    "ignore_specific_keyword/script.js/fun_from_14_to_18": [
-        "ignore_specific_keyword/library.js/anonymous_from_2_to_5",
-        "ignore_specific_keyword/library.js/anonymous_from_8_to_11",
-        "lib1/index.js/anonymous_from_1_to_3"
+    "ignore_specific_keyword/library.js/anonymous_at_2:11": [],
+    "ignore_specific_keyword/library.js/anonymous_at_8:16": [],
+    "ignore_specific_keyword/script.js/fun_at_14:0": [
+        "ignore_specific_keyword/library.js/anonymous_at_2:11",
+        "ignore_specific_keyword/library.js/anonymous_at_8:16",
+        "lib1/index.js/anonymous_at_1:15"
     ],
     "ignore_specific_keyword/script.js/global": [
-        "ignore_specific_keyword/script.js/fun_from_14_to_18"
+        "ignore_specific_keyword/script.js/fun_at_14:0"
     ],
-    "ignore_specific_keyword/src/javascript/common/common.js/common_from_1_to_3": [],
+    "ignore_specific_keyword/src/javascript/common/common.js/common_at_1:0": [],
     "ignore_specific_keyword/src/javascript/common/common.js/global": [
-        "ignore_specific_keyword/src/javascript/common/common.js/common_from_1_to_3"
+        "ignore_specific_keyword/src/javascript/common/common.js/common_at_1:0"
     ],
-    "ignore_specific_keyword/src/javascript/js_script.js/b_from_1_to_3": [],
+    "ignore_specific_keyword/src/javascript/js_script.js/b_at_1:0": [],
     "ignore_specific_keyword/src/javascript/js_script.js/global": [
-        "ignore_specific_keyword/src/javascript/js_script.js/b_from_1_to_3"
+        "ignore_specific_keyword/src/javascript/js_script.js/b_at_1:0"
     ],
-    "ignore_specific_keyword/src/src_script.js/a_from_1_to_3": [],
+    "ignore_specific_keyword/src/src_script.js/a_at_1:0": [],
     "ignore_specific_keyword/src/src_script.js/global": [
-        "ignore_specific_keyword/src/src_script.js/a_from_1_to_3"
+        "ignore_specific_keyword/src/src_script.js/a_at_1:0"
     ],
-    "lib1/index.js/anonymous_from_1_to_3": []
+    "lib1/index.js/anonymous_at_1:15": []
 }

@@ -1,3 +1,3 @@
-arrowFunc = x => { return x; };
+arr_func = x => { return x; };
 
-arrowFunc(10);
+arr_func(10);

@@ -1,0 +1,11 @@
+{
+    "simple_module_no_name/node_mod/library.js/anonymous_at_2:11": [],
+    "simple_module_no_name/node_mod/library.js/anonymous_at_8:16": [],
+    "simple_module_no_name/script.js/fun_at_18:0": [
+        "simple_module_no_name/node_mod/library.js/anonymous_at_2:11",
+        "simple_module_no_name/node_mod/library.js/anonymous_at_8:16"
+    ],
+    "simple_module_no_name/script.js/global": [
+        "simple_module_no_name/script.js/fun_at_18:0"
+    ]
+}

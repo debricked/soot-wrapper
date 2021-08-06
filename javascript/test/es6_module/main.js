@@ -1,3 +1,3 @@
 import { square, diag } from 'lib';
-console.log(square(11)); // 121
-console.log(diag(4, 3)); // 5
+console.log(square(12)); // 144
+console.log(diag(12, 5)); // 13

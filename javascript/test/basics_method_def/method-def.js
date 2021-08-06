@@ -1,11 +1,11 @@
-var obj = {
-    randomMethod1: function () {
-        return 42;
+var test_obj = {
+    some_method1: function () {
+        return 37;
     },
-    'randomMethod2': function () {
-        return 'red';
+    'some_method2': function () {
+        return 'blue';
     }
 }
 
-obj.randomMethod1();
-obj.randomMethod2();
+test_obj.some_method1();
+test_obj.some_method2();

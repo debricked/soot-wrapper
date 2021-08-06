@@ -1,12 +1,12 @@
-function f() {
-  return 5;
+function func() {
+  return 37;
 }
 
-function f(x) {
-  return x;
+function func(a) {
+  return a;
 }
 
 function main() {
- f();
+ func();
 }
 

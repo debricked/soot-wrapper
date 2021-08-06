@@ -1,11 +1,11 @@
 // This file tests assigning a function object to an existing local variable
-function main() {
-	let a = 1;
-	let b = function funcB () {
-		console.log('funcB is called!');
+function func() {
+	let c = 1;
+	let b = function new_func () {
+		console.log('new_func is called!');
 	};
-	a = b;
-	a();
+	c = b;
+	c();
 }
 
-main();
+func();
