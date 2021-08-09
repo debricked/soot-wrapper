@@ -6,13 +6,46 @@ import re
 import subprocess
 import sys
 import getopt
-from esprima.esprima import parse
 from intervaltree import IntervalTree 
 from pathlib import Path
 import warnings
 import time
 import multiprocessing as mp
 import pickle
+
+# for some reason we get recursion limit without this on some small packages
+sys.setrecursionlimit(10**6)
+
+def remove_unreachable(starting_nodes, cg):
+    """ remove_unreachable takes a call graph and starting nodes and filters
+        out the nodes that aren't reachable from the starting nodes
+
+    Paramater:
+    starting_nodes (list[string]): the starting nodes in the traversal
+    cg (dict): The call graph to be "cleaned"
+
+    Returns:
+    dict, the cleaned call graph
+    """
+    
+    starting_nodes = [x for x in starting_nodes if x in cg]
+    clean_cg = {}
+    vis = set()
+    vis.union(starting_nodes)
+    que = starting_nodes
+    ind = 0
+
+    while ind < len(que):
+        curr = que[ind]
+        if curr in cg:
+            clean_cg[curr] = cg[curr]
+            for neigh in cg[curr]:
+                if neigh not in vis:
+                    vis.add(neigh)
+                    que.append(neigh)
+        ind += 1
+    return clean_cg
+
 
 def find_source_files(package_folder):
     """ find_source_files takes a root package folder and returns a list of 
@@ -33,7 +66,7 @@ def find_source_files(package_folder):
     source_code_in_package = glob.glob(package_folder + "*.js")
     
     # loop through all subdirectories and add all .js files there recursively
-   # for subdir in filter(lambda x: os.path.isdir(package_folder + x) and x not in SOURCE_IGNORE, package_dir):
+    # for subdir in filter(lambda x: os.path.isdir(package_folder + x) and x not in SOURCE_IGNORE, package_dir):
     for subdir in [x for x in package_dir if os.path.isdir(package_folder + x) and x not in SOURCE_IGNORE]:
         js_glob_path = os.path.join(package_folder, subdir, "**/*.js")
         source_code_in_package.extend(glob.glob(js_glob_path, recursive=True))
@@ -57,7 +90,7 @@ def slice_data(data, nprocs):
         slices[i % nprocs].append(data[i])
     return slices
 
-def gen_cg_for_package(package_folder, output_file):
+def gen_cg_for_package(package_folder, output_file, cg_memory):
     start = time.time()
     """" gen_cg_for_package calculates the call graph for the package in
     package_folder and its dependencies and saves the call graph to
@@ -70,6 +103,9 @@ def gen_cg_for_package(package_folder, output_file):
 
     output_file (string): Path to the output file where the call graph
     is stored. 
+
+    cg_memory (int): The target number of bytes to be used in each call 
+    to the third party js-callgraph. 
 
     Returns:
     void
@@ -96,8 +132,7 @@ def gen_cg_for_package(package_folder, output_file):
     global file_size; file_size = {}
     global space_time; space_time = []
     visited_packages = set()
-    parsed_packages = set()
-
+    
     # recursive function that will be called for each package in the dep-tree
     def rec_gen_cg(rec_package_folder):
        # print("Currently calculating call graph for", rec_package_folder, "and its dependencies.")
@@ -208,6 +243,7 @@ def gen_cg_for_package(package_folder, output_file):
             symbol_ranges_to_footprint.update(p_range_to_symbol)
             incorrect_syntax_files.extend(p_incorrect_syntax)
             file_size.update(p_file_size)
+
         parsed = {}
         parsed['interval_trees'] = interval_trees
         parsed['symbol_ranges_to_footprint'] = symbol_ranges_to_footprint
@@ -229,7 +265,7 @@ def gen_cg_for_package(package_folder, output_file):
 
     cg_package_vis = set()
 
-    # cg_memory is the targetet size in bytes for all the files in each js-callgraph run
+    # cg_memory is the targeted size in bytes for all the files in each js-callgraph run
     cg_memory = 2500000
 
     # calculate internal cg edges for large projects
@@ -323,6 +359,14 @@ def gen_cg_for_package(package_folder, output_file):
 
     pool.close()
     pool.join()    
+
+    # filter away all the nodes that aren't reachable from the files in package_folder
+    start_nodes = []
+    for source_file in package_to_files[package_folder]:
+        for func in interval_trees[source_file]:
+            start_nodes.append(func.data['footprint'])
+
+    cg = remove_unreachable(start_nodes, cg)
 
     with open(output_file, "w") as f:
         f.write(json.dumps(cg, indent=4, sort_keys=True))
@@ -570,22 +614,25 @@ def main(argv):
     Returns:
     void
     """
-    # set default output_file
+    # set default values
     output_file = "cg.json"
     input_package = ""
+    cg_memory = 2500000
     try:
-        opts, args = getopt.getopt(argv, "hi:o:")
+        opts, args = getopt.getopt(argv, "hi:o:m:")
     except getopt.GetoptError:
-        print("gen_package_cg.py -i <input_package> -o <output_file>")
+        print("gen_package_cg.py -i <input_package> -o <output_file> -m <memory_for_each_run>")
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-i':
             input_package = os.path.abspath(arg)
         elif opt == '-o':
             output_file = os.path.abspath(arg)
+        elif opt == '-m':
+            cg_memory = int(arg)
         elif opt == '-h':
-            print("Usage: gen_package_cg.py -i <input_package> -o <output_file>")
-    gen_cg_for_package(input_package, output_file)
+            print("Usage: gen_package_cg.py -i <input_package> -o <output_file> -m <memory_for_each_run>")
+    gen_cg_for_package(input_package, output_file, cg_memory)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

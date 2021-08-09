@@ -113,8 +113,8 @@ def test_one_way_call():
         cg = json.load(f)
     print("cg:", cg)
  
-    assert "lib1/index.js/global" in cg
-    assert "one_way_call/script.js/fun_at_14:0" not in cg["lib1/index.js/global"]
+    assert "lib1/index.js/anonymous_at_1:15" in cg
+    assert "one_way_call/script.js/fun_at_14:0" not in cg["lib1/index.js/anonymous_at_1:15"]
 
     if os.path.isfile("cg.json"):
         os.remove("cg.json")

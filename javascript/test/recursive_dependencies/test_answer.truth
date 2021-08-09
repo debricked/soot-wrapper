@@ -3,9 +3,6 @@
         "lib2/index.js/anonymous_at_3:15"
     ],
     "lib2/index.js/anonymous_at_3:15": [],
-    "lib2/index.js/anonymous_at_8:16": [
-        "lib1/index.js/anonymous_at_3:15"
-    ],
     "recursive_dependencies/library.js/anonymous_at_2:11": [],
     "recursive_dependencies/library.js/anonymous_at_8:16": [],
     "recursive_dependencies/script.js/fun_at_14:0": [
