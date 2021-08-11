@@ -8,7 +8,7 @@ if ! [ -d "$1" ] ; then
     exit 1
 fi
 
-pathToCommonDirectory="/vulnfunc/common"
+pathToCommonDirectory="/common"
 . $pathToCommonDirectory"/commonWrapper.sh"
 
 # Check that package.json is provided
@@ -32,7 +32,5 @@ outputFileName=".debricked-call-graph-golang"
 # Run the actual script that generates the call graph
 echo "Running call graph generator"
 /vulnfunc/golang/src/gen_callgraph.sh "$module_dir" $outputFileName
-
-cat "/vulnfunc/golang/src/$outputFileName"
 
 formatOutput "/vulnfunc/golang/src/$outputFileName"
