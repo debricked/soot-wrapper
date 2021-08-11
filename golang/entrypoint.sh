@@ -18,6 +18,7 @@ if ! [ -e "$1/go.mod" ] ; then
 fi
 
 module_dir="${1%/}"
+module_dir=realpath module_dir
 echo $module_dir
 echo $PWD
 # install dependencies
@@ -31,7 +32,7 @@ outputFileName=".debricked-call-graph-golang"
 
 # Run the actual script that generates the call graph
 echo "Running call graph generator"
-/vulnfunc/golang/src/gen_callgraph.sh "./$module_dir" $outputFileName
+/vulnfunc/golang/src/gen_callgraph.sh "$module_dir" $outputFileName
 
 cat "/vulnfunc/golang/src/$outputFileName"
 
