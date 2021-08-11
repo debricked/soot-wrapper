@@ -32,4 +32,6 @@ outputFileName=".debricked-call-graph-golang"
 echo "Running call graph generator"
 /vulnfunc/golang/src/gen_callgraph.sh $module_dir $outputFileName
 
+cat "/vulnfunc/golang/src/$outputFileName"
+
 formatOutput "/vulnfunc/golang/src/$outputFileName"
