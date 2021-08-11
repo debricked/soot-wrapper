@@ -8,7 +8,8 @@ inputs:
 
 runs:
   using: docker
-  image: docker://debricked/vulnerable-functionality:golang
+  # image: docker://debricked/vulnerable-functionality:golang
+  image: Dockerfile
   entrypoint: /vulnfunc/golang/entrypoint.sh
   args:
     - ${{ inputs.root-mainpackage-directory }}
