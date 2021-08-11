@@ -8,7 +8,7 @@ if ! [ -d "$1" ] ; then
     exit 1
 fi
 
-pathToCommonDirectory="/common"
+pathToCommonDirectory="./common"
 . $pathToCommonDirectory"/commonWrapper.sh"
 
 # Check that package.json is provided
