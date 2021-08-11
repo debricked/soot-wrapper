@@ -18,7 +18,7 @@ if ! [ -e "$1/go.mod" ] ; then
 fi
 
 module_dir="${1%/}"
-module_dir=realpath "$module_dir"
+module_dir=dirname "$(realpath $module_dir/go.mod)"
 echo $module_dir
 echo $PWD
 # install dependencies
