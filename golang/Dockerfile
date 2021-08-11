@@ -2,7 +2,6 @@
 
 FROM golang:1.16
 
-COPY ./common /vulnfunc/common
 COPY ./src /vulnfunc/golang/src
 
 RUN apt-get update ; apt-get install --no-install-recommends -y zip
