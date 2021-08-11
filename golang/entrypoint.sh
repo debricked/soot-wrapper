@@ -19,6 +19,7 @@ fi
 
 module_dir="${1%/}"
 echo $module_dir
+echo $PWD
 # install dependencies
 cd $module_dir && go install
 
