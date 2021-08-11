@@ -19,8 +19,7 @@ fi
 
 module_dir="${1%/}"
 module_dir="/github/workspace/$module_dir"
-echo $module_dir
-echo $PWD
+
 # install dependencies
 cd $module_dir && go install
 

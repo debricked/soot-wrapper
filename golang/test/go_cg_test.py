@@ -1,33 +1,37 @@
 import subprocess
 import json
-from os.path import expanduser
-
+import os
+from pathlib import Path
 
 def test_call_graph():
-    home = expanduser("~")
-    cmd = ["./gen_callgraph.sh", "../test", "../test", home+"/go"]
-    subprocess.run(cmd, cwd="../go_cg_extractor")
-    cmd = ["mv", "cg.json", "../test"]
-    subprocess.run(cmd, cwd="../go_cg_extractor")
+    path_to_src = Path(os.path.realpath(__file__)).parent.parent / "src"
+    path_to_src = path_to_src.resolve()
 
-    with open("cg.json", "r") as f:
+    path_to_test = Path(os.path.realpath(__file__)).parent
+
+    cmd = [str(path_to_src / "gen_callgraph.sh"), str(path_to_test), "cg.json"]
+    subprocess.run(cmd)
+
+    with open(str(path_to_src / "cg.json"), "r") as f:
         cg = json.load(f)
     
     # call to external library
-    assert '(github.com/artdarek/go-unzip/pkg/unzip.Unzip).Extract' in cg['github.com/TeodorBucht1729/go-test-module.main']
+    assert 'github.com/google/go-github/v36/github.NewClient' in cg['debricked.com/go-test-module/hello.Main']
 
     # call to closure function 
-    assert "github.com/TeodorBucht1729/go-test-module/hello.adder$1" in cg["github.com/TeodorBucht1729/go-test-module/hello.Main"]
+    assert "debricked.com/go-test-module/hello.adder$1" in cg["debricked.com/go-test-module/hello.Main"]
 
     # regular function call in different package
-    assert "github.com/TeodorBucht1729/go-test-module/hello.Main" in cg["github.com/TeodorBucht1729/go-test-module.main"]
+    assert "debricked.com/go-test-module/hello.Main" in cg["debricked.com/go-test-module.main"]
 
     # call to method 
-    assert "(*github.com/TeodorBucht1729/go-test-module/hello.Fruit).GetName" in cg["github.com/TeodorBucht1729/go-test-module/hello.Main"]
+    assert "(*debricked.com/go-test-module/hello.Fruit).GetName" in cg["debricked.com/go-test-module/hello.Main"]
 
     # call in external library
-    assert "(github.com/artdarek/go-unzip/pkg/unzip.Unzip).extractAndWriteFile$1" in cg["(github.com/artdarek/go-unzip/pkg/unzip.Unzip).extractAndWriteFile"]
-    assert "(github.com/artdarek/go-unzip/pkg/unzip.Unzip).extractAndWriteFile" in cg["(github.com/artdarek/go-unzip/pkg/unzip.Unzip).Extract"]
+    assert "github.com/google/go-github/v36/github.sanitizeURL" in cg["(*github.com/google/go-github/v36/github.AbuseRateLimitError).Error"]
+
+    # internal call to used code
+    assert "debricked.com/go-test-module/hello.Main$1" in cg["sort.doPivot_func"]
 
     # clean up
-    subprocess.run(["rm", "cg.json"])
+    subprocess.run(["rm", str(path_to_src / "cg.json")])
