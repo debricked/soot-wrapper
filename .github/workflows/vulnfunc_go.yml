@@ -8,7 +8,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: debricked/vulnerable-functionality/golang@master
+    - uses: TeodorBucht1729/vulnerable-functionality/golang@go-vuln-func
       with:
-        root-packagejson-directory: 'javascript/test/fresh_install'
+        root-mainpackage-directory: 'golang/test'
 
