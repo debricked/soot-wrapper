@@ -10,5 +10,5 @@ jobs:
     - uses: actions/checkout@v2
     - uses: TeodorBucht1729/vulnerable-functionality/golang@go-vuln-func
       with:
-        root-mainpackage-directory: '/vulnfunc/golang/test'
+        root-mainpackage-directory: 'golang/test'
 

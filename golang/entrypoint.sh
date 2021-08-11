@@ -18,7 +18,7 @@ if ! [ -e "$1/go.mod" ] ; then
 fi
 
 module_dir="${1%/}"
-
+echo $module_dir
 # install dependencies
 cd $module_dir && go install
 
