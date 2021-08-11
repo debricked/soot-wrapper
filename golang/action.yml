@@ -1,0 +1,17 @@
+name: Debricked Vulnerable Functionality for Golang
+author: Debricked
+description: Calculates the call graph for a Golang main package
+inputs: 
+  root-mainpackage-directory:
+    description: Directory containing the .go with the main package and function. 
+    required: true
+
+runs:
+  using: docker
+  image: docker://debricked/vulnerable-functionality:golang
+  entrypoint: /vulnfunc/golang/entrypoint.sh
+  args:
+    - ${{ inputs.root-mainpackage-directory }}
+branding:
+  color: purple
+  icon: filter

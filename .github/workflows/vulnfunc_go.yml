@@ -1,0 +1,14 @@
+name: Vulnerable Functionality test
+
+on: [push]
+
+jobs:
+  vulnfunc:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: debricked/vulnerable-functionality/golang@master
+      with:
+        root-packagejson-directory: 'javascript/test/fresh_install'
+
