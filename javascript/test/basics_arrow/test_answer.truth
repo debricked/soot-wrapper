@@ -1,0 +1,19 @@
+{
+    "data": [
+        [
+            "basics_arrow/arrow.js/anonymous_at_1:11",
+            true,
+            false,
+            "arrow.js",
+            1,
+            1,
+            [
+                [
+                    "basics_arrow/arrow.js/global",
+                    3
+                ]
+            ]
+        ]
+    ],
+    "version": 2
+}

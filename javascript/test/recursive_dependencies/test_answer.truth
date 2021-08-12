@@ -1,16 +1,79 @@
 {
-    "lib1/index.js/anonymous_at_3:15": [
-        "lib2/index.js/anonymous_at_3:15"
+    "data": [
+        [
+            "recursive_dependencies/library.js/anonymous_at_2:11",
+            true,
+            false,
+            "library.js",
+            2,
+            5,
+            [
+                [
+                    "recursive_dependencies/script.js/fun_at_14:0",
+                    15
+                ]
+            ]
+        ],
+        [
+            "recursive_dependencies/library.js/anonymous_at_8:16",
+            true,
+            false,
+            "library.js",
+            8,
+            11,
+            [
+                [
+                    "recursive_dependencies/script.js/fun_at_14:0",
+                    16
+                ]
+            ]
+        ],
+        [
+            "recursive_dependencies/script.js/fun_at_14:0",
+            true,
+            false,
+            "script.js",
+            14,
+            18,
+            [
+                [
+                    "recursive_dependencies/script.js/global",
+                    20
+                ]
+            ]
+        ],
+        [
+            "lib1/index.js/anonymous_at_3:15",
+            false,
+            false,
+            "index.js",
+            3,
+            6,
+            [
+                [
+                    "lib2/index.js/anonymous_at_8:16",
+                    10
+                ],
+                [
+                    "recursive_dependencies/script.js/fun_at_14:0",
+                    17
+                ]
+            ]
+        ],
+        [
+            "lib2/index.js/anonymous_at_3:15",
+            false,
+            false,
+            "index.js",
+            3,
+            6,
+            [
+                [
+                    "lib1/index.js/anonymous_at_3:15",
+                    5
+                ]
+            ]
+        ]
     ],
-    "lib2/index.js/anonymous_at_3:15": [],
-    "recursive_dependencies/library.js/anonymous_at_2:11": [],
-    "recursive_dependencies/library.js/anonymous_at_8:16": [],
-    "recursive_dependencies/script.js/fun_at_14:0": [
-        "recursive_dependencies/library.js/anonymous_at_2:11",
-        "recursive_dependencies/library.js/anonymous_at_8:16",
-        "lib1/index.js/anonymous_at_3:15"
-    ],
-    "recursive_dependencies/script.js/global": [
-        "recursive_dependencies/script.js/fun_at_14:0"
-    ]
+    "version": 2
 }

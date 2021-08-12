@@ -374,8 +374,6 @@ def gen_cg_for_package(package_folder, output_file, cg_memory):
     # where start_row and start_col are where the call is made. Should be formatted to the following format: 
     # https://github.com/debricked/vulnerable-functionality/wiki/Output-format
 
-    print(cg)
-
     list_cg = {}
     list_cg['version'] = 2
     list_cg['data'] = []
@@ -385,7 +383,7 @@ def gen_cg_for_package(package_folder, output_file, cg_memory):
             False, symbol['file_name'], symbol['row_start'], symbol['row_end']]
         callees = []
         for callee in cg[footprint]:
-            callees.append([callee[0], callee[1][0], callee[1][1]])
+            callees.append([callee[0], callee[1][0]])
         new_element.append(callees)
         list_cg['data'].append(new_element)
 

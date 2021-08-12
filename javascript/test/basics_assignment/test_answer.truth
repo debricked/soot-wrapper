@@ -1,0 +1,33 @@
+{
+    "data": [
+        [
+            "basics_assignment/assignment.js/func_at_2:0",
+            true,
+            false,
+            "assignment.js",
+            2,
+            9,
+            [
+                [
+                    "basics_assignment/assignment.js/global",
+                    11
+                ]
+            ]
+        ],
+        [
+            "basics_assignment/assignment.js/new_func_at_4:9",
+            true,
+            false,
+            "assignment.js",
+            4,
+            6,
+            [
+                [
+                    "basics_assignment/assignment.js/func_at_2:0",
+                    8
+                ]
+            ]
+        ]
+    ],
+    "version": 2
+}

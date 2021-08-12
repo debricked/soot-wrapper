@@ -1,0 +1,41 @@
+{
+    "data": [
+        [
+            "es6_module/lib.js/square_at_2:7",
+            true,
+            false,
+            "lib.js",
+            2,
+            4,
+            [
+                [
+                    "es6_module/lib.js/diag_at_5:7",
+                    6
+                ],
+                [
+                    "es6_module/lib.js/diag_at_5:7",
+                    6
+                ],
+                [
+                    "es6_module/main.js/global",
+                    2
+                ]
+            ]
+        ],
+        [
+            "es6_module/lib.js/diag_at_5:7",
+            true,
+            false,
+            "lib.js",
+            5,
+            7,
+            [
+                [
+                    "es6_module/main.js/global",
+                    3
+                ]
+            ]
+        ]
+    ],
+    "version": 2
+}
