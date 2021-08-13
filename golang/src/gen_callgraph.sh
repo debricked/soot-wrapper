@@ -17,7 +17,7 @@ output_file="$SCRIPT_DIR/$2"
 
 echo "Generating edges" 
 # change dir to the package directory and run the callgraph command 
-(cd $1 && callgraph -format='{{.Caller}} file:{{.Filename}}--->{{.Callee}}' -algo=pta .) \
+(cd $1 && callgraph -format='{{.Caller}} file:{{.Filename}} {{.Line}} {{.Column}}--->{{.Callee}}' -algo=pta .) \
 | sort | uniq > $partial_file1
 echo "Done generating edges"
 
