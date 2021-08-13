@@ -1,0 +1,35 @@
+{
+    "data": [
+        [
+            "basics_global-as-prop/global-as-prop.js/anonymous_at_1:13",
+            true,
+            false,
+            "-",
+            "global-as-prop.js",
+            1,
+            1,
+            [
+                [
+                    "basics_global-as-prop/global-as-prop.js/global",
+                    5
+                ]
+            ]
+        ],
+        [
+            "basics_global-as-prop/global-as-prop.js/anonymous_at_2:25",
+            true,
+            false,
+            "-",
+            "global-as-prop.js",
+            2,
+            2,
+            [
+                [
+                    "basics_global-as-prop/global-as-prop.js/global",
+                    4
+                ]
+            ]
+        ]
+    ],
+    "version": 2
+}

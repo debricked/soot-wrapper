@@ -1,7 +1,7 @@
 {
     "data": [
         [
-            "simple_module_no_name/script.js/fun_at_18:0",
+            "simple_module/script.js/fun_at_18:0",
             true,
             false,
             "-",
@@ -10,13 +10,13 @@
             21,
             [
                 [
-                    "simple_module_no_name/script.js/global",
+                    "simple_module/script.js/global",
                     23
                 ]
             ]
         ],
         [
-            "simple_module_no_name/node_mod/library.js/anonymous_at_2:11",
+            "simple_module/node_mod/library.js/anonymous_at_2:11",
             true,
             false,
             "-",
@@ -25,13 +25,13 @@
             5,
             [
                 [
-                    "simple_module_no_name/script.js/fun_at_18:0",
+                    "simple_module/script.js/fun_at_18:0",
                     19
                 ]
             ]
         ],
         [
-            "simple_module_no_name/node_mod/library.js/anonymous_at_8:16",
+            "simple_module/node_mod/library.js/anonymous_at_8:16",
             true,
             false,
             "-",
@@ -40,7 +40,7 @@
             11,
             [
                 [
-                    "simple_module_no_name/script.js/fun_at_18:0",
+                    "simple_module/script.js/fun_at_18:0",
                     20
                 ]
             ]

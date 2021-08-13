@@ -13,8 +13,16 @@ def test_import_from_inside():
     with open("cg.json", "r") as f:
         cg = json.load(f)
     print("cg:", cg)
-    assert "import_from_inside/script.js/fun_at_14:0" in cg
-    assert "lib1/index.js/anonymous_at_1:15" in cg["import_from_inside/script.js/fun_at_14:0"]
+
+    truth_file = os.path.join(sp, "import_from_inside", "test_answer.truth")
+    print(truth_file)
+    assert os.path.isfile(truth_file), "Truth file missing"
+    with open(truth_file, "r") as f:
+        corr_cg = json.load(f)
+    for i in range(len(cg['data'])):
+        cg['data'][i][-1].sort(key= lambda x: x[0])
+        corr_cg['data'][i][-1].sort(key= lambda x: x[0])
+    assert sorted(cg['data'], key = lambda x: x[0]) == sorted(corr_cg['data'], key = lambda x: x[0])
 
     if os.path.isfile("cg.json"):
         os.remove("cg.json")
@@ -27,8 +35,16 @@ def test_import_from_outside():
     with open("cg.json", "r") as f:
         cg = json.load(f)
     print("cg:", cg)
-    assert "import_from_outside/script.js/fun_at_14:0" in cg
-    assert "lib2/index.js/anonymous_at_1:15" in cg["import_from_outside/script.js/fun_at_14:0"]
+
+    truth_file = os.path.join(sp, "import_from_outside", "test_answer.truth")
+    print(truth_file)
+    assert os.path.isfile(truth_file), "Truth file missing"
+    with open(truth_file, "r") as f:
+        corr_cg = json.load(f)
+    for i in range(len(cg['data'])):
+        cg['data'][i][-1].sort(key= lambda x: x[0])
+        corr_cg['data'][i][-1].sort(key= lambda x: x[0])
+    assert sorted(cg['data'], key = lambda x: x[0]) == sorted(corr_cg['data'], key = lambda x: x[0])
 
     if os.path.isfile("cg.json"):
         os.remove("cg.json")
@@ -41,8 +57,16 @@ def test_inside_priority():
     with open("cg.json", "r") as f:
         cg = json.load(f)
     print("cg:", cg)
-    assert "import_priority/script.js/fun_at_14:0" in cg
-    assert "lib1/index.js/anonymous_at_1:15" in cg["import_priority/script.js/fun_at_14:0"]
+
+    truth_file = os.path.join(sp, "import_priority", "test_answer.truth")
+    print(truth_file)
+    assert os.path.isfile(truth_file), "Truth file missing"
+    with open(truth_file, "r") as f:
+        corr_cg = json.load(f)
+    for i in range(len(cg['data'])):
+        cg['data'][i][-1].sort(key= lambda x: x[0])
+        corr_cg['data'][i][-1].sort(key= lambda x: x[0])
+    assert sorted(cg['data'], key = lambda x: x[0]) == sorted(corr_cg['data'], key = lambda x: x[0])
 
     if os.path.isfile("cg.json"):
         os.remove("cg.json")
@@ -55,13 +79,16 @@ def test_ignore():
     with open("cg.json", "r") as f:
         cg = json.load(f)
     print("cg:", cg)
-    assert "test_answer.truth" in os.listdir(sp + "ignore_specific_keyword/"), "truth file missing"
-    with open(sp + "ignore_specific_keyword/test_answer.truth", "r") as f:
-        correct_cg = json.load(f)
 
-    for key in correct_cg.keys():
-        assert key in cg
-        assert sorted(cg[key]) == sorted(correct_cg[key])
+    truth_file = os.path.join(sp, "ignore_specific_keyword", "test_answer.truth")
+    print(truth_file)
+    assert os.path.isfile(truth_file), "Truth file missing"
+    with open(truth_file, "r") as f:
+        corr_cg = json.load(f)
+    for i in range(len(cg['data'])):
+        cg['data'][i][-1].sort(key= lambda x: x[0])
+        corr_cg['data'][i][-1].sort(key= lambda x: x[0])
+    assert sorted(cg['data'], key = lambda x: x[0]) == sorted(corr_cg['data'], key = lambda x: x[0])
         
     if os.path.isfile("cg.json"):
         os.remove("cg.json")
@@ -74,13 +101,16 @@ def test_recursive_dependencies():
     with open("cg.json", "r") as f:
         cg = json.load(f)
     print("cg:", cg)
-    assert "test_answer.truth" in os.listdir(sp + "recursive_dependencies/"), "truth file missing"
-    with open(sp + "recursive_dependencies/test_answer.truth", "r") as f:
-        correct_cg = json.load(f)
 
-    for key in correct_cg.keys():
-        assert key in cg
-        assert sorted(cg[key]) == sorted(correct_cg[key])
+    truth_file = os.path.join(sp, "recursive_dependencies", "test_answer.truth")
+    print(truth_file)
+    assert os.path.isfile(truth_file), "Truth file missing"
+    with open(truth_file, "r") as f:
+        corr_cg = json.load(f)
+    for i in range(len(cg['data'])):
+        cg['data'][i][-1].sort(key= lambda x: x[0])
+        corr_cg['data'][i][-1].sort(key= lambda x: x[0])
+    assert sorted(cg['data'], key = lambda x: x[0]) == sorted(corr_cg['data'], key = lambda x: x[0])
     
     if os.path.isfile("cg.json"):
         os.remove("cg.json")
@@ -93,13 +123,16 @@ def test_incorrect_script():
     with open("cg.json", "r") as f:
         cg = json.load(f)
     print("cg:", cg)
-    assert "test_answer.truth" in os.listdir(sp + "incorrect_dep/"), "truth file missing"
-    with open(sp + "incorrect_dep/test_answer.truth", "r") as f:
-        correct_cg = json.load(f)
 
-    for key in correct_cg.keys():
-        assert key in cg
-        assert sorted(cg[key]) == sorted(correct_cg[key])
+    truth_file = os.path.join(sp, "incorrect_dep", "test_answer.truth")
+    print(truth_file)
+    assert os.path.isfile(truth_file), "Truth file missing"
+    with open(truth_file, "r") as f:
+        corr_cg = json.load(f)
+    for i in range(len(cg['data'])):
+        cg['data'][i][-1].sort(key= lambda x: x[0])
+        corr_cg['data'][i][-1].sort(key= lambda x: x[0])
+    assert sorted(cg['data'], key = lambda x: x[0]) == sorted(corr_cg['data'], key = lambda x: x[0])
 
     if os.path.isfile("cg.json"):
         os.remove("cg.json")
@@ -113,8 +146,15 @@ def test_one_way_call():
         cg = json.load(f)
     print("cg:", cg)
  
-    assert "lib1/index.js/anonymous_at_1:15" in cg
-    assert "one_way_call/script.js/fun_at_14:0" not in cg["lib1/index.js/anonymous_at_1:15"]
+    truth_file = os.path.join(sp, "one_way_call", "test_answer.truth")
+    print(truth_file)
+    assert os.path.isfile(truth_file), "Truth file missing"
+    with open(truth_file, "r") as f:
+        corr_cg = json.load(f)
+    for i in range(len(cg['data'])):
+        cg['data'][i][-1].sort(key= lambda x: x[0])
+        corr_cg['data'][i][-1].sort(key= lambda x: x[0])
+    assert sorted(cg['data'], key = lambda x: x[0]) == sorted(corr_cg['data'], key = lambda x: x[0])
 
     if os.path.isfile("cg.json"):
         os.remove("cg.json")
@@ -128,13 +168,16 @@ def test_no_name():
     with open("cg.json", "r") as f:
         cg = json.load(f)
     print("cg:", cg)
-    assert "test_answer.truth" in os.listdir(sp + "simple_module_no_name/"), "truth file missing"
-    with open(sp + "simple_module_no_name/test_answer.truth", "r") as f:
-        correct_cg = json.load(f)
 
-    for key in correct_cg.keys():
-        assert key in cg
-        assert sorted(cg[key]) == sorted(correct_cg[key])
+    truth_file = os.path.join(sp, "simple_module_no_name", "test_answer.truth")
+    print(truth_file)
+    assert os.path.isfile(truth_file), "Truth file missing"
+    with open(truth_file, "r") as f:
+        corr_cg = json.load(f)
+    for i in range(len(cg['data'])):
+        cg['data'][i][-1].sort(key= lambda x: x[0])
+        corr_cg['data'][i][-1].sort(key= lambda x: x[0])
+    assert sorted(cg['data'], key = lambda x: x[0]) == sorted(corr_cg['data'], key = lambda x: x[0])
     
     if os.path.isfile("cg.json"):
         os.remove("cg.json")

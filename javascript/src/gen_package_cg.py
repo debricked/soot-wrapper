@@ -131,6 +131,7 @@ def gen_cg_for_package(package_folder, output_file, cg_memory):
     global time_per_package; time_per_package = {}
     global file_size; file_size = {}
     global space_time; space_time = []
+    data_symbols = {}
     visited_packages = set()
     
     # recursive function that will be called for each package in the dep-tree
@@ -238,11 +239,12 @@ def gen_cg_for_package(package_folder, output_file, cg_memory):
         slices = slice_data(files_in_packages, nprocs)
         multi_result = [pool.apply_async(parse_files, (inp, )) for inp in slices]
         for p in multi_result:
-            (p_int_tree, p_range_to_symbol, p_incorrect_syntax, p_file_size) = p.get()
+            (p_int_tree, p_range_to_symbol, p_incorrect_syntax, p_file_size, p_data_symbols) = p.get()
             interval_trees.update(p_int_tree)
             symbol_ranges_to_footprint.update(p_range_to_symbol)
             incorrect_syntax_files.extend(p_incorrect_syntax)
             file_size.update(p_file_size)
+            data_symbols.update(p_data_symbols)
 
         parsed = {}
         parsed['interval_trees'] = interval_trees
@@ -360,16 +362,37 @@ def gen_cg_for_package(package_folder, output_file, cg_memory):
     pool.close()
     pool.join()    
 
-    # filter away all the nodes that aren't reachable from the files in package_folder
-    start_nodes = []
-    for source_file in package_to_files[package_folder]:
-        for func in interval_trees[source_file]:
-            start_nodes.append(func.data['footprint'])
+    # the filtering below is currently commented out because of the new call graph format makes it 
+    # harder to filter away the unecessary nodes. 
 
-    cg = remove_unreachable(start_nodes, cg)
+    # filter away all the nodes that aren't reachable from the files in package_folder
+    # start_nodes = []
+    # for source_file in package_to_files[package_folder]:
+    #     for func in interval_trees[source_file]:
+    #         start_nodes.append(func.data['footprint'])
+
+    # cg = remove_unreachable(start_nodes, cg)
+
+
+    # format call graph to new format, cg is curently a dict with footprint -> a list of (footprint, (start_row, start_col))
+    # where start_row and start_col are where the call is made. Below it is formatted to the following format: 
+    # https://github.com/debricked/vulnerable-functionality/wiki/Output-format
+
+    list_cg = {}
+    list_cg['version'] = 2
+    list_cg['data'] = []
+    for footprint in cg:
+        symbol = data_symbols[footprint]
+        new_element = [footprint, files_to_dep[symbol['file']] == package_folder, \
+            False, "-", symbol['file_name'], symbol['row_start'], symbol['row_end']]
+        callees = []
+        for callee in cg[footprint]:
+            callees.append([callee[0], callee[1][0]])
+        new_element.append(callees)
+        list_cg['data'].append(new_element)
 
     with open(output_file, "w") as f:
-        f.write(json.dumps(cg, indent=4, sort_keys=True))
+        f.write(json.dumps(list_cg, indent=4, sort_keys=True))
 
     end = time.time()
 
@@ -409,6 +432,7 @@ def parse_files(source_files):
     symbol_ranges_to_footprint = {}
     incorrect_syntax_files = []
     file_size = {}
+    data_symbols = {}
 
     program_path = ""
 
@@ -425,6 +449,10 @@ def parse_files(source_files):
             footprint = program_path + "/" + name + "_at_" + str(node.loc.start.line) + ":" + str(node.loc.start.column)
 
             symbol = {"footprint" : footprint, "range" : node.range, "file": file_path}
+
+            data_symbol = {"footprint" : footprint, "range" : node.range, "file_name": Path(file_path).name, \
+                "row_start": node.loc.start.line, "row_end": node.loc.end.line, "file": file_path}
+
             # check if we have visited this file before, if not create a new IntervalTree
             if symbol['file'] not in interval_trees:
                 interval_trees[symbol['file']] = IntervalTree()
@@ -434,6 +462,7 @@ def parse_files(source_files):
             # the interval tree it is as though we have inclusion at both ends. 
             interval_trees[symbol['file']].addi(symbol['range'][0], symbol['range'][1]+1, symbol)
             symbol_ranges_to_footprint[symbol['file']][tuple(symbol['range'])] = symbol['footprint']
+            data_symbols[data_symbol['footprint']] = data_symbol
 
     # loop through all the files to be parsed and parse them
     for prog_nbr, prog in enumerate(source_files):
@@ -482,6 +511,11 @@ def parse_files(source_files):
         # add artificial node for the entire script named global
         
         symbol = {"file": file_path, "footprint" : program_path + "/global", "range" : (0, len(program))}
+
+        # data_symbol is a bigger symbol containing all the function data
+        data_symbol = {"file_name": Path(file_path).name, "footprint" : program_path + "/global", "range" : (0, len(program)), \
+            "row_start": 0, "row_end": len(prog.split("\n"))+1, "file": file_path}
+        
         # check if we have visited this file before, if not create a new IntervalTree
         try:
             if symbol['file'] not in interval_trees:
@@ -490,6 +524,8 @@ def parse_files(source_files):
             # add the function to the tree
             interval_trees[symbol['file']].addi(symbol['range'][0], symbol['range'][1]+1, symbol)
             symbol_ranges_to_footprint[symbol['file']][tuple(symbol['range'])] = symbol['footprint']
+            # add the function to the data_dict
+            data_symbols[data_symbol['footprint']] = data_symbol
         except ValueError:
             warnings.warn("Unable to add global node to " + symbol['footprint'] + " will ignore it from now on")
             incorrect_syntax_files.append(prog)
@@ -499,7 +535,7 @@ def parse_files(source_files):
         p = p.resolve()
         file_size[prog] = p.stat().st_size
     
-    return (interval_trees, symbol_ranges_to_footprint, incorrect_syntax_files, file_size)
+    return (interval_trees, symbol_ranges_to_footprint, incorrect_syntax_files, file_size, data_symbols)
     
 def gen_cg_for_files(all_cg_files):
     """ gen_cg_for_files calls js-callgraph with a subprocess and returns
@@ -578,7 +614,7 @@ def gen_cg_for_files(all_cg_files):
         with open("partial_cg_" + str(os.getpid()) + ".json", "r") as f:
             partial_cg = json.load(f)
     else:
-        # return None if the call graph generatin failed
+        # return None if the call graph generation failed
         return None
 
     # loop over all the edges found and add them to cg.
@@ -593,10 +629,10 @@ def gen_cg_for_files(all_cg_files):
             source_symbol = symbol_containing_call(call['source'])
             target_symbol = target_search(call['target'])
 
-            if source_symbol not in cg:
-                cg[source_symbol] = []
-            if target_symbol != "Native" and target_symbol not in cg[source_symbol]:
-                cg[source_symbol].append(target_symbol)
+            if target_symbol != "Native" and target_symbol not in cg:
+                cg[target_symbol] = []
+            if target_symbol != "Native" and (source_symbol, (call['source']['start']['row'], call['source']['start']['column'])) not in cg[target_symbol]:
+                cg[target_symbol].append((source_symbol, (call['source']['start']['row'], call['source']['start']['column'])))
         except ValueError:
             warnings.warn("Was not able to find enclosing function for \n" + str(call) + "\n ignoring this call. The underlaying reason is probably that python and javascript have parsed it differently.")
 
