@@ -7,9 +7,17 @@ import subprocess
 
 def conv_cg(output_file):
     """ conv_cg reads a call graph from standard in on the format 
-        {{.Caller}} file:{{.Filename}}--->{{.Callee}} from the command
+       {{.Caller}} file:{{.Filename}} {{.Line}} {{.Column}}--->{{.Callee}} from the command
         callgraph from https://pkg.go.dev/golang.org/x/tools, converts 
-        into a adjacency list and saves it in json format. 
+        into the following format: https://github.com/debricked/vulnerable-functionality/wiki/Output-format
+        and saves it as a json. 
+
+    Example of a call graph inputted through standard in:
+    debricked.com/go-test-module/hello.Main file:/home/teodor/debricked/vulnerable-functionality/golang/test/hello/hello.go 34 28--->github.com/google/go-github/v36/github.NewClient
+    debricked.com/go-test-module/hello.Main file:/home/teodor/debricked/vulnerable-functionality/golang/test/hello/hello.go 36 46--->(*github.com/google/go-github/v36/github.RepositoriesService).ListByOrg
+    debricked.com/go-test-module/hello.Main file:/home/teodor/debricked/vulnerable-functionality/golang/test/hello/hello.go 36 65--->context.Background
+    debricked.com/go-test-module/hello.Main file:/home/teodor/debricked/vulnerable-functionality/golang/test/hello/hello.go 38 12--->fmt.Print
+    debricked.com/go-test-module/hello.Main file:/home/teodor/debricked/vulnerable-functionality/golang/test/hello/hello.go 38 33--->(*github.com/google/go-github/v36/github.Repository).GetFullName
 
     Parameters:
     output_file (string): the file were the output json-file is saved.
@@ -18,12 +26,13 @@ def conv_cg(output_file):
     void
     """
 
+    # these are the packages we will parse later to get better symbol information
     packages_to_parse = set()
 
-    # the adjacency list with all edges. 
+    # the adjacency list with all edges reversed. 
     cg = {}
     for inp_line in sys.stdin:
-        # split att the "special" charachter "--->"
+        # split at the "special" charachter "--->"
         line = inp_line.split("--->")
         source_call = line[0].split()
         source = source_call[0]
@@ -35,28 +44,34 @@ def conv_cg(output_file):
         if (source, (int(source_call[2]), int(source_call[3]))) not in cg[target]:
             cg[target].append((source, (int(source_call[2]), int(source_call[3]))))
 
-    # parse all the files to get information about the symbols such as position
+    # parse the saved packages to get information about the symbols such as position
+    # note that we currently only parse the packages where calls are made from
+    # since it is rather difficult to obtain the paths to the functions being called
 
     data_symbols = {}
-
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
+    # loop thorugh the packages that the calls come from and parse them so that we get information about the symbols
     for package_to_parse in packages_to_parse:
-        cmd = [os.path.join(script_dir, "run.sh"), os.path.join(script_dir, package_to_parse)]
-        subprocess.run(cmd)
+        cmd = [os.path.join(script_dir, "run.sh"), os.path.join(package_to_parse)]
+        completed_process = subprocess.run(cmd)
 
-        with open(os.path.join(script_dir, "symbols.json"), "r") as f:
-            part_symbols = json.load(f)
+        # if we can parse the package, load the symbols
+        if not completed_process.returncode: 
+            with open(os.path.join(script_dir, "symbols.json"), "r") as f:
+                part_symbols = json.load(f)
 
-        for symbol in part_symbols:
-            if 'footprint' in symbol:
-                data_symbols[symbol['footprint']] = symbol
+            for symbol in part_symbols:
+                if 'footprint' in symbol:
+                    data_symbols[symbol['footprint']] = symbol
 
-
+    # convert the reversed adjacancy list into the correct output format by adding the information
+    # from the parsed symbols
     list_cg = {}
     list_cg['version'] = 2
     list_cg['data'] = []
     for footprint in cg:
+        # if footprint isn't in data_symbols it means that we didn't find when parsing
         if footprint in data_symbols:
             symbol = data_symbols[footprint]
             # TODO: Implement a check for isApplicationClass and isStandardLibraryClass, i.e. the second and third argument in new_element
@@ -65,6 +80,8 @@ def conv_cg(output_file):
         else:
             new_element = [footprint, False, \
                 False, "-", "unknown", "unknown", "unknown"]
+
+        # calless is all the functions calling footprint
         callees = []
         for callee in cg[footprint]:
             callees.append([callee[0], callee[1][0]])
@@ -78,8 +95,8 @@ def conv_cg(output_file):
 
 def main(argv):
     """ main parses the command line arguments (only permit the flag -o)
-        and calls the function that converts the call graph into an
-        adjacency list and saves it.
+        and calls the function that converts the call graph into the 
+        proper format and saves it.
 
     Paramaters:
     argv (list[string]): the given command line arguments
