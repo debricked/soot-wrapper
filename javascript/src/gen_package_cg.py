@@ -362,6 +362,9 @@ def gen_cg_for_package(package_folder, output_file, cg_memory):
     pool.close()
     pool.join()    
 
+    # the filtering below is currently commented out because of the new call graph format makes it 
+    # harder to filter away the unecessary nodes. 
+
     # filter away all the nodes that aren't reachable from the files in package_folder
     # start_nodes = []
     # for source_file in package_to_files[package_folder]:
@@ -370,8 +373,9 @@ def gen_cg_for_package(package_folder, output_file, cg_memory):
 
     # cg = remove_unreachable(start_nodes, cg)
 
+
     # format call graph to new format, cg is curently a dict with footprint -> a list of (footprint, (start_row, start_col))
-    # where start_row and start_col are where the call is made. Should be formatted to the following format: 
+    # where start_row and start_col are where the call is made. Below it is formatted to the following format: 
     # https://github.com/debricked/vulnerable-functionality/wiki/Output-format
 
     list_cg = {}
@@ -380,7 +384,7 @@ def gen_cg_for_package(package_folder, output_file, cg_memory):
     for footprint in cg:
         symbol = data_symbols[footprint]
         new_element = [footprint, files_to_dep[symbol['file']] == package_folder, \
-            False, symbol['file_name'], symbol['row_start'], symbol['row_end']]
+            False, "-", symbol['file_name'], symbol['row_start'], symbol['row_end']]
         callees = []
         for callee in cg[footprint]:
             callees.append([callee[0], callee[1][0]])
