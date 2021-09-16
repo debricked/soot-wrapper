@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# results from generating js callgraph
+final_cg.json
+partial_cg.json
+cg.json

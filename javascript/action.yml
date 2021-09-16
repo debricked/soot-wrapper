@@ -1,0 +1,17 @@
+name: Debricked Vulnerable Functionality for JavaScript
+author: Debricked
+description: Calculates the call graph for a JavaScript project
+inputs: 
+  root-packagejson-directory:
+    description: Directory containing the root package.json and package-lock.json of the project to analyse
+    required: true
+
+runs:
+  using: docker
+  image: docker://debricked/vulnerable-functionality:javascript
+  entrypoint: /vulnfunc/javascript/src/entrypoint.sh
+  args:
+    - ${{ inputs.root-packagejson-directory }}
+branding:
+  color: purple
+  icon: filter

@@ -1,0 +1,50 @@
+{
+    "data": [
+        [
+            "incorrect_dep/library.js/anonymous_at_2:11",
+            true,
+            false,
+            "-",
+            "library.js",
+            2,
+            5,
+            [
+                [
+                    "incorrect_dep/script.js/fun_at_14:0",
+                    15
+                ]
+            ]
+        ],
+        [
+            "incorrect_dep/library.js/anonymous_at_8:16",
+            true,
+            false,
+            "-",
+            "library.js",
+            8,
+            11,
+            [
+                [
+                    "incorrect_dep/script.js/fun_at_14:0",
+                    16
+                ]
+            ]
+        ],
+        [
+            "incorrect_dep/script.js/fun_at_14:0",
+            true,
+            false,
+            "-",
+            "script.js",
+            14,
+            18,
+            [
+                [
+                    "incorrect_dep/script.js/global",
+                    20
+                ]
+            ]
+        ]
+    ],
+    "version": 2
+}

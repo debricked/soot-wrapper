@@ -1,0 +1,14 @@
+name: Vulnerable Functionality test golang
+
+on: [push]
+
+jobs:
+  vulnfunc:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: TeodorBucht1729/vulnerable-functionality/golang@go-vuln-func
+      with:
+        root-mainpackage-directory: 'golang/test'
+

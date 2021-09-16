@@ -6,7 +6,7 @@ if ! [ -d "$1" ] ; then
 	exit 1
 fi
 
-$pathToCommonDirectory = "/vulnfunc/java/common"
+$pathToCommonDirectory = "/vulnfunc/common"
 . $pathToCommonDirectory"/commonWrapper.sh"
 
 projectRootDirectory="${1%/}"
@@ -35,7 +35,7 @@ gradle -q compileJava
 
 cd $cwd
 pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
-outputFileName=".debricked-call-graph"
+outputFileName=".debricked-call-graph-java"
 echo "Running SootWrapper"
 java -jar $pathToSootWrapper -u $projectRootDirectory"/build/classes/java/main" -l $dependencyDir -f $outputFileName
 

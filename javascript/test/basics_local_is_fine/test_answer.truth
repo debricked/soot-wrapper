@@ -1,0 +1,50 @@
+{
+    "data": [
+        [
+            "basics_local_is_fine/local-is-fine.js/anonymous_at_1:1",
+            true,
+            false,
+            "-",
+            "local-is-fine.js",
+            1,
+            6,
+            [
+                [
+                    "basics_local_is_fine/local-is-fine.js/global",
+                    1
+                ]
+            ]
+        ],
+        [
+            "basics_local_is_fine/local-is-fine.js/anonymous_at_2:15",
+            true,
+            false,
+            "-",
+            "local-is-fine.js",
+            2,
+            2,
+            [
+                [
+                    "basics_local_is_fine/local-is-fine.js/anonymous_at_1:1",
+                    5
+                ]
+            ]
+        ],
+        [
+            "basics_local_is_fine/local-is-fine.js/anonymous_at_3:27",
+            true,
+            false,
+            "-",
+            "local-is-fine.js",
+            3,
+            3,
+            [
+                [
+                    "basics_local_is_fine/local-is-fine.js/anonymous_at_1:1",
+                    4
+                ]
+            ]
+        ]
+    ],
+    "version": 2
+}

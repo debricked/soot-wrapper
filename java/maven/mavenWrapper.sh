@@ -6,7 +6,7 @@ if ! [ -d "$1" ] ; then
 	exit 1
 fi
 
-pathToCommonDirectory="/vulnfunc/java/common"
+pathToCommonDirectory="/vulnfunc/common"
 . $pathToCommonDirectory"/commonWrapper.sh"
 
 projectRootDirectory="${1%/}"
@@ -25,7 +25,7 @@ echo "Compiling and moving dependencies"
 mvn -q -B -f $projectRootDirectory package dependency:copy-dependencies -DoutputDirectory=$dependencyDir -DskipTests
 
 pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
-outputFileName=".debricked-call-graph"
+outputFileName=".debricked-call-graph-java"
 echo "Running SootWrapper"
 java -jar $pathToSootWrapper -u $projectRootDirectory"/target/classes" -l $dependencyDir -f $outputFileName
 

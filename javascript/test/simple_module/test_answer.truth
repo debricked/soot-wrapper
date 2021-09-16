@@ -1,0 +1,50 @@
+{
+    "data": [
+        [
+            "simple_module/script.js/fun_at_18:0",
+            true,
+            false,
+            "-",
+            "script.js",
+            18,
+            21,
+            [
+                [
+                    "simple_module/script.js/global",
+                    23
+                ]
+            ]
+        ],
+        [
+            "simple_module/node_mod/library.js/anonymous_at_2:11",
+            true,
+            false,
+            "-",
+            "library.js",
+            2,
+            5,
+            [
+                [
+                    "simple_module/script.js/fun_at_18:0",
+                    19
+                ]
+            ]
+        ],
+        [
+            "simple_module/node_mod/library.js/anonymous_at_8:16",
+            true,
+            false,
+            "-",
+            "library.js",
+            8,
+            11,
+            [
+                [
+                    "simple_module/script.js/fun_at_18:0",
+                    20
+                ]
+            ]
+        ]
+    ],
+    "version": 2
+}
