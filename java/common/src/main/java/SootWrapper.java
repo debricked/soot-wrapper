@@ -44,7 +44,7 @@ public class SootWrapper {
         Map<String[], Set<String[]>> calls = new HashMap<>();
         Set<SootMethod> analysedMethods = new HashSet<>();
         for (SootMethod m : Scene.v().getEntryPoints()) {
-            analyseMethod(calls, cg, m, analysedMethods);
+            analyseMethod(calls, cg, m, analysedMethods, m); // todo ideally we also want first target and line number of call
             entryClasses.add(m.getDeclaringClass());
         }
 
@@ -69,7 +69,7 @@ public class SootWrapper {
         return new AnalysisResult(calls, phantoms, badPhantoms);
     }
 
-    private static void analyseMethod(Map<String[], Set<String[]>> calls, CallGraph cg, SootMethod m, Set<SootMethod> analysedMethods) {
+    private static void analyseMethod(Map<String[], Set<String[]>> calls, CallGraph cg, SootMethod m, Set<SootMethod> analysedMethods, SootMethod originatingMethod) {
         analysedMethods.add(m);
         Set<String[]> sourceSignatures = new HashSet<>();
         Iterator<Edge> edgesInto = cg.edgesInto(m);
@@ -85,7 +85,7 @@ public class SootWrapper {
             String[] sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
             sourceSignatures.add(sourceSignature);
         }
-        calls.put(getFormattedTargetSignature(m), sourceSignatures);
+        calls.put(getFormattedTargetSignature(m, originatingMethod), sourceSignatures);
 
         Iterator<Edge> edgesOut = cg.edgesOutOf(m);
         while (edgesOut.hasNext()) {
@@ -98,7 +98,7 @@ public class SootWrapper {
                 targetMethod = (SootMethod) target;
             }
             if (!analysedMethods.contains(targetMethod)) {
-                analyseMethod(calls, cg, targetMethod, analysedMethods);
+                analyseMethod(calls, cg, targetMethod, analysedMethods, originatingMethod);
             }
         }
     }
@@ -107,7 +107,7 @@ public class SootWrapper {
         return new String[] { getSignatureString(method), Integer.toString(lineNumber) };
     }
 
-    private static String[] getFormattedTargetSignature(SootMethod method) {
+    private static String[] getFormattedTargetSignature(SootMethod method, SootMethod originatingMethod) {
         return new String[] {
                 getSignatureString(method),
                 method.getDeclaringClass().isApplicationClass() ? "true" : "false",
@@ -116,6 +116,7 @@ public class SootWrapper {
                 getProbableName(method.getDeclaringClass()),
                 Integer.toString(method.getJavaSourceStartLineNumber()),
                 "-1", // todo source end line number
+                getSignatureString(originatingMethod),
         };
     }
 

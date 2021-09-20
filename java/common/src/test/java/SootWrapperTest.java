@@ -90,19 +90,54 @@ public class SootWrapperTest {
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
                 String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
-        boolean found = false;
+        boolean[] founds = { false, false, false, false };
         for (String[] caller : calls.keySet()) {
-            if (caller[0].equals("Main.method()")) {
-                assertEquals("true", caller[1]);
-                assertEquals("false", caller[2]);
-                assertEquals("Main", caller[3]);
-                assertEquals("Main.java", caller[4]);
-                assertEquals("2", caller[5]);
-                assertEquals("-1", caller[6]);
-                found = true;
+            switch (caller[0]) {
+                case "Main.method()":
+                    assertEquals("true", caller[1]);
+                    assertEquals("false", caller[2]);
+                    assertEquals("Main", caller[3]);
+                    assertEquals("Main.java", caller[4]);
+                    assertEquals("2", caller[5]);
+                    assertEquals("-1", caller[6]);
+                    assertEquals("Main.method()", caller[7]);
+                    founds[0] = true;
+                    break;
+                case "Child.<init>()":
+                    assertEquals("false", caller[1]);
+                    assertEquals("false", caller[2]);
+                    assertEquals("Child", caller[3]);
+                    assertEquals("Child.java", caller[4]);
+                    assertEquals("0", caller[5]);
+                    assertEquals("-1", caller[6]);
+                    assertEquals("Main.method()", caller[7]);
+                    founds[1] = true;
+                    break;
+                case "Parent.publicParentMethod()":
+                    assertEquals("false", caller[1]);
+                    assertEquals("false", caller[2]);
+                    assertEquals("Parent", caller[3]);
+                    assertEquals("Parent.java", caller[4]);
+                    assertEquals("2", caller[5]);
+                    assertEquals("-1", caller[6]);
+                    assertEquals("Main.method()", caller[7]);
+                    founds[2] = true;
+                    break;
+                case "Parent.privateParentMethod()":
+                    assertEquals("false", caller[1]);
+                    assertEquals("false", caller[2]);
+                    assertEquals("Parent", caller[3]);
+                    assertEquals("Parent.java", caller[4]);
+                    assertEquals("5", caller[5]);
+                    assertEquals("-1", caller[6]);
+                    assertEquals("Main.method()", caller[7]);
+                    founds[3] = true;
+                    break;
             }
         }
-        assertTrue(found);
+        for (boolean found : founds) {
+            assertTrue(found);
+        }
         assertMethodIsCalledByMethods(calls, "Parent.publicParentMethod()", new String[]{"Main.method()"});
         assertMethodIsCalledByMethods(calls, "Parent.privateParentMethod()", new String[]{"Parent.publicParentMethod()"});
     }
@@ -179,7 +214,7 @@ public class SootWrapperTest {
                     "soot.Main.run(String[])"
             });
             assertMethodIsCalledByMethods(calls, "soot.SootMethod.getDeclaringClass()", new String[]{
-                    "SootWrapper.getFormattedTargetSignature(SootMethod)"
+                    "SootWrapper.getFormattedTargetSignature(SootMethod, SootMethod)"
                     ,"SootWrapper.doAnalysis(Collection, Collection)"
                     ,"SootWrapper.getSignatureString(SootMethod)"
             });
