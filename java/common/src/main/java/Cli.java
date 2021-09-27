@@ -68,7 +68,9 @@ class Cli implements Callable<Integer> {
             writer.write(callee[5]);
             writer.write(",\n\t\t\t");
             writer.write(callee[6]);
-            writer.write(",\n\t\t\t[");
+            writer.write(",\n\t\t\t\"");
+            writer.write(callee[7]);
+            writer.write("\",\n\t\t\t[");
             int j = 0;
             for (String[] caller : calls.get(callee)) {
                 writer.write("\n\t\t\t\t[\n\t\t\t\t\t\"");
