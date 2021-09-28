@@ -2,17 +2,17 @@ import java.util.Map;
 import java.util.Set;
 
 public class AnalysisResult {
-    private final Map<String[], Set<String[]>> callGraph;
+    private final Map<TargetSignature, Set<SourceSignature>> callGraph;
     private final Set<String> phantoms;
     private final Set<String> badPhantoms;
 
-    public AnalysisResult(Map<String[], Set<String[]>> callGraph, Set<String> phantoms, Set<String> badPhantoms) {
+    public AnalysisResult(Map<TargetSignature, Set<SourceSignature>> callGraph, Set<String> phantoms, Set<String> badPhantoms) {
         this.callGraph = callGraph;
         this.phantoms = phantoms;
         this.badPhantoms = badPhantoms;
     }
 
-    public Map<String[], Set<String[]>> getCallGraph() {
+    public Map<TargetSignature, Set<SourceSignature>> getCallGraph() {
         return callGraph;
     }
 

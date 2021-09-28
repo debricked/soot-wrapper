@@ -51,32 +51,32 @@ class Cli implements Callable<Integer> {
         writer.write(",\n\t\"data\":\n\t[");
 
         AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
-        Map<String[], Set<String[]>> calls = res.getCallGraph();
+        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
         int i = 0;
-        for (String[] callee : calls.keySet()) {
+        for (TargetSignature callee : calls.keySet()) {
             writer.write("\n\t\t[\n\t\t\t\"");
-            writer.write(callee[0]);
+            writer.write(callee.getMethod());
             writer.write("\",\n\t\t\t");
-            writer.write(callee[1]);
+            writer.write(callee.isApplicationClass() ? "true" : "false");
             writer.write(",\n\t\t\t");
-            writer.write(callee[2]);
+            writer.write(callee.isJavaLibraryClass() ? "true" : "false");
             writer.write(",\n\t\t\t\"");
-            writer.write(callee[3]);
+            writer.write(callee.getClassName());
             writer.write("\",\n\t\t\t\"");
-            writer.write(callee[4]);
+            writer.write(callee.getFileName());
             writer.write("\",\n\t\t\t");
-            writer.write(callee[5]);
+            writer.write(callee.getStartLineNumber());
             writer.write(",\n\t\t\t");
-            writer.write(callee[6]);
+            writer.write(callee.getEndLineNumber());
             writer.write(",\n\t\t\t\"");
-            writer.write(callee[7]);
+            writer.write(callee.getUserCodeMethod());
             writer.write("\",\n\t\t\t[");
             int j = 0;
-            for (String[] caller : calls.get(callee)) {
+            for (SourceSignature caller : calls.get(callee)) {
                 writer.write("\n\t\t\t\t[\n\t\t\t\t\t\"");
-                writer.write(caller[0]);
+                writer.write(caller.getMethod());
                 writer.write("\",\n\t\t\t\t\t");
-                writer.write(caller[1]);
+                writer.write(caller.getLineNumber());
                 writer.write("\n\t\t\t\t]");
                 if (++j < calls.get(callee).size()) {
                     writer.write(",");

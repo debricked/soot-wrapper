@@ -41,7 +41,7 @@ public class SootWrapper {
         CallGraph cg = Scene.v().getCallGraph();
 
         Set<SootClass> entryClasses = new HashSet<>();
-        Map<String[], Set<String[]>> calls = new HashMap<>();
+        Map<TargetSignature, Set<SourceSignature>> calls = new HashMap<>();
         Set<SootMethod> analysedMethods = new HashSet<>();
         for (SootMethod m : Scene.v().getEntryPoints()) {
             analyseMethod(calls, cg, m, analysedMethods, m); // todo ideally we also want first target and line number of call
@@ -69,9 +69,9 @@ public class SootWrapper {
         return new AnalysisResult(calls, phantoms, badPhantoms);
     }
 
-    private static void analyseMethod(Map<String[], Set<String[]>> calls, CallGraph cg, SootMethod m, Set<SootMethod> analysedMethods, SootMethod originatingMethod) {
+    private static void analyseMethod(Map<TargetSignature, Set<SourceSignature>> calls, CallGraph cg, SootMethod m, Set<SootMethod> analysedMethods, SootMethod originatingMethod) {
         analysedMethods.add(m);
-        Set<String[]> sourceSignatures = new HashSet<>();
+        Set<SourceSignature> sourceSignatures = new HashSet<>();
         Iterator<Edge> edgesInto = cg.edgesInto(m);
         while (edgesInto.hasNext()) {
             Edge e = edgesInto.next();
@@ -82,7 +82,7 @@ public class SootWrapper {
             } else {
                 sourceMethod = (SootMethod) source;
             }
-            String[] sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
+            SourceSignature sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
             sourceSignatures.add(sourceSignature);
         }
         calls.put(getFormattedTargetSignature(m, originatingMethod), sourceSignatures);
@@ -103,21 +103,21 @@ public class SootWrapper {
         }
     }
 
-    private static String[] getFormattedSourceSignature(SootMethod method, int lineNumber) {
-        return new String[] { getSignatureString(method), Integer.toString(lineNumber) };
+    private static SourceSignature getFormattedSourceSignature(SootMethod method, int lineNumber) {
+        return new SourceSignature(getSignatureString(method), lineNumber);
     }
 
-    private static String[] getFormattedTargetSignature(SootMethod method, SootMethod originatingMethod) {
-        return new String[] {
+    private static TargetSignature getFormattedTargetSignature(SootMethod method, SootMethod originatingMethod) {
+        return new TargetSignature(
                 getSignatureString(method),
-                method.getDeclaringClass().isApplicationClass() ? "true" : "false",
-                method.getDeclaringClass().isJavaLibraryClass() ? "true" : "false",
+                method.getDeclaringClass().isApplicationClass(),
+                method.getDeclaringClass().isJavaLibraryClass(),
                 method.getDeclaringClass().getName(),
                 getProbableName(method.getDeclaringClass()),
-                Integer.toString(method.getJavaSourceStartLineNumber()),
-                "-1", // todo source end line number
-                getSignatureString(originatingMethod),
-        };
+                method.getJavaSourceStartLineNumber(),
+                -1, // todo source end line number
+                getSignatureString(originatingMethod)
+        );
     }
 
     private static String getSignatureString(SootMethod method) {

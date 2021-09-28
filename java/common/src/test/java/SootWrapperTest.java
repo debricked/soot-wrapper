@@ -27,7 +27,7 @@ public class SootWrapperTest {
         AnalysisResult res = SootWrapper.doAnalysis(
                 Collections.singletonList(Paths.get(basePath + "testDependencyTracesAreIncluded/userCode")),
                 Collections.singletonList(Paths.get(basePath + "testDependencyTracesAreIncluded/dependencies")));
-        Map<String[], Set<String[]>> calls = res.getCallGraph();
+        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
         assertTrue(res.getBadPhantoms().isEmpty(),
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
@@ -70,11 +70,11 @@ public class SootWrapperTest {
                 ,"jarDependency.JarDependency.nestedMethodOnlyCalledFromDependencyMethodNotCalled()"
                 ,"jarDependency.JarDependency.dependencyMethodNotCalled()"
         };
-        for (String[] key : calls.keySet()) {
+        for (TargetSignature key : calls.keySet()) {
             for (String unwantedSignature : unwantedSignatures) {
-                assertNotEquals(unwantedSignature, key[3]);
-                for (String[] value : calls.get(key)) {
-                    assertNotEquals(unwantedSignature, value[1]);
+                assertNotEquals(unwantedSignature, key.getMethod());
+                for (SourceSignature value : calls.get(key)) {
+                    assertNotEquals(unwantedSignature, value.getMethod());
                 }
             }
         }
@@ -85,52 +85,52 @@ public class SootWrapperTest {
         AnalysisResult res = SootWrapper.doAnalysis(
                 Collections.singletonList(Paths.get(basePath + "testInheritance/userCode")),
                 Collections.singletonList(Paths.get(basePath + "testInheritance/dependencies")));
-        Map<String[], Set<String[]>> calls = res.getCallGraph();
+        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
         assertTrue(res.getBadPhantoms().isEmpty(),
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
                 String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
         boolean[] founds = { false, false, false, false };
-        for (String[] caller : calls.keySet()) {
-            switch (caller[0]) {
+        for (TargetSignature callee : calls.keySet()) {
+            switch (callee.getMethod()) {
                 case "Main.method()":
-                    assertEquals("true", caller[1]);
-                    assertEquals("false", caller[2]);
-                    assertEquals("Main", caller[3]);
-                    assertEquals("Main.java", caller[4]);
-                    assertEquals("2", caller[5]);
-                    assertEquals("-1", caller[6]);
-                    assertEquals("Main.method()", caller[7]);
+                    assertTrue(callee.isApplicationClass());
+                    assertFalse(callee.isJavaLibraryClass());
+                    assertEquals("Main", callee.getClassName());
+                    assertEquals("Main.java", callee.getFileName());
+                    assertEquals(2, callee.getStartLineNumber());
+                    assertEquals(-1, callee.getEndLineNumber());
+                    assertEquals("Main.method()", callee.getUserCodeMethod());
                     founds[0] = true;
                     break;
                 case "Child.<init>()":
-                    assertEquals("false", caller[1]);
-                    assertEquals("false", caller[2]);
-                    assertEquals("Child", caller[3]);
-                    assertEquals("Child.java", caller[4]);
-                    assertEquals("0", caller[5]);
-                    assertEquals("-1", caller[6]);
-                    assertEquals("Main.method()", caller[7]);
+                    assertFalse(callee.isApplicationClass());
+                    assertFalse(callee.isJavaLibraryClass());
+                    assertEquals("Child", callee.getClassName());
+                    assertEquals("Child.java", callee.getFileName());
+                    assertEquals(0, callee.getStartLineNumber());
+                    assertEquals(-1, callee.getEndLineNumber());
+                    assertEquals("Main.method()", callee.getUserCodeMethod());
                     founds[1] = true;
                     break;
                 case "Parent.publicParentMethod()":
-                    assertEquals("false", caller[1]);
-                    assertEquals("false", caller[2]);
-                    assertEquals("Parent", caller[3]);
-                    assertEquals("Parent.java", caller[4]);
-                    assertEquals("2", caller[5]);
-                    assertEquals("-1", caller[6]);
-                    assertEquals("Main.method()", caller[7]);
+                    assertFalse(callee.isApplicationClass());
+                    assertFalse(callee.isJavaLibraryClass());
+                    assertEquals("Parent", callee.getClassName());
+                    assertEquals("Parent.java", callee.getFileName());
+                    assertEquals(2, callee.getStartLineNumber());
+                    assertEquals(-1, callee.getEndLineNumber());
+                    assertEquals("Main.method()", callee.getUserCodeMethod());
                     founds[2] = true;
                     break;
                 case "Parent.privateParentMethod()":
-                    assertEquals("false", caller[1]);
-                    assertEquals("false", caller[2]);
-                    assertEquals("Parent", caller[3]);
-                    assertEquals("Parent.java", caller[4]);
-                    assertEquals("5", caller[5]);
-                    assertEquals("-1", caller[6]);
-                    assertEquals("Main.method()", caller[7]);
+                    assertFalse(callee.isApplicationClass());
+                    assertFalse(callee.isJavaLibraryClass());
+                    assertEquals("Parent", callee.getClassName());
+                    assertEquals("Parent.java", callee.getFileName());
+                    assertEquals(5, callee.getStartLineNumber());
+                    assertEquals(-1, callee.getEndLineNumber());
+                    assertEquals("Main.method()", callee.getUserCodeMethod());
                     founds[3] = true;
                     break;
             }
@@ -153,7 +153,7 @@ public class SootWrapperTest {
         AnalysisResult res = SootWrapper.doAnalysis(
                 Collections.singletonList(Paths.get(basePath + "testPrivateAndAnonymousClasses/userCode")),
                 Collections.singletonList(Paths.get(basePath + "testPrivateAndAnonymousClasses/dependencies")));
-        Map<String[], Set<String[]>> calls = res.getCallGraph();
+        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
         assertTrue(res.getBadPhantoms().isEmpty(),
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
@@ -192,7 +192,7 @@ public class SootWrapperTest {
             AnalysisResult res = SootWrapper.doAnalysis(
                     Collections.singletonList(Paths.get("target/classes")),
                     Collections.singletonList(Paths.get("target/dependency")));
-            Map<String[], Set<String[]>> calls = res.getCallGraph();
+            Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
             assertTrue(res.getBadPhantoms().isEmpty(),
                     String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
             assertMethodIsCalledByMethods(calls, "picocli.CommandLine.<init>(Object)", new String[]{
@@ -223,36 +223,36 @@ public class SootWrapperTest {
         }
     }
 
-    private void assertMethodIsCalledByMethods(Map<String[], Set<String[]>> calls, String callee, String[] callers) {
+    private void assertMethodIsCalledByMethods(Map<TargetSignature, Set<SourceSignature>> calls, String callee, String[] callers) {
         boolean found = false;
-        String[] index = null;
-        for (String[] callGraphCaller : calls.keySet()) {
-            if (callGraphCaller[0].equals(callee)) {
+        TargetSignature index = null;
+        for (TargetSignature callGraphCallee : calls.keySet()) {
+            if (callGraphCallee.getMethod().equals(callee)) {
                 found = true;
-                index = callGraphCaller;
+                index = callGraphCallee;
                 break;
             }
         }
         if (!found) {
             StringBuilder callees = new StringBuilder();
-            for (String[] callerString : calls.keySet()) {
-                callees.append(callerString[0]).append(", ");
+            for (TargetSignature callerString : calls.keySet()) {
+                callees.append(callerString.getMethod()).append(", ");
             }
             fail(String.format("Failed asserting that %s is a callee. Callees: %s\n", callee, callees));
         }
         assertNotNull(index);
         for (String caller : callers) {
             found = false;
-            for (String[] calledBy : calls.get(index)) {
-                if (calledBy[0].equals(caller)) {
+            for (SourceSignature calledBy : calls.get(index)) {
+                if (calledBy.getMethod().equals(caller)) {
                     found = true;
                     break;
                 }
             }
             if (!found) {
                 StringBuilder sourcesString = new StringBuilder();
-                for (String[] sourceString : calls.get(index)) {
-                    sourcesString.append(sourceString[0]).append(", ");
+                for (SourceSignature sourceString : calls.get(index)) {
+                    sourcesString.append(sourceString.getMethod()).append(", ");
                 }
                 fail(String.format("Failed asserting that %s is called by %s. Set of calling methods: %s\n", callee, caller, sourcesString));
             }
