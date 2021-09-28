@@ -15,6 +15,8 @@ public class TargetSignature {
 
     private final String userCodeMethod;
 
+    private final SourceSignature firstDependencyCall;
+
     public TargetSignature(
             String method,
             boolean isApplicationClass,
@@ -23,7 +25,8 @@ public class TargetSignature {
             String fileName,
             int startLineNumber,
             int endLineNumber,
-            String userCodeMethod
+            String userCodeMethod,
+            SourceSignature firstDependencyCall
     ) {
         this.method = method;
         this.isApplicationClass = isApplicationClass;
@@ -33,6 +36,7 @@ public class TargetSignature {
         this.startLineNumber = startLineNumber;
         this.endLineNumber = endLineNumber;
         this.userCodeMethod = userCodeMethod;
+        this.firstDependencyCall = firstDependencyCall;
     }
 
     public String getMethod() {
@@ -65,5 +69,9 @@ public class TargetSignature {
 
     public String getUserCodeMethod() {
         return userCodeMethod;
+    }
+
+    public SourceSignature getFirstDependencyCall() {
+        return firstDependencyCall;
     }
 }

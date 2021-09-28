@@ -65,18 +65,22 @@ class Cli implements Callable<Integer> {
             writer.write("\",\n\t\t\t\"");
             writer.write(callee.getFileName());
             writer.write("\",\n\t\t\t");
-            writer.write(callee.getStartLineNumber());
+            writer.write(Integer.toString(callee.getStartLineNumber()));
             writer.write(",\n\t\t\t");
-            writer.write(callee.getEndLineNumber());
-            writer.write(",\n\t\t\t\"");
+            writer.write(Integer.toString(callee.getEndLineNumber()));
+            writer.write(",\n\t\t\t[\n\t\t\t\t\"");
             writer.write(callee.getUserCodeMethod());
-            writer.write("\",\n\t\t\t[");
+            writer.write("\",\n\t\t\t\t");
+            writer.write(Integer.toString(callee.getFirstDependencyCall().getLineNumber()));
+            writer.write(",\n\t\t\t\t\"");
+            writer.write(callee.getFirstDependencyCall().getMethod());
+            writer.write("\"\n\t\t\t],\n\t\t\t[");
             int j = 0;
             for (SourceSignature caller : calls.get(callee)) {
                 writer.write("\n\t\t\t\t[\n\t\t\t\t\t\"");
                 writer.write(caller.getMethod());
                 writer.write("\",\n\t\t\t\t\t");
-                writer.write(caller.getLineNumber());
+                writer.write(Integer.toString(caller.getLineNumber()));
                 writer.write("\n\t\t\t\t]");
                 if (++j < calls.get(callee).size()) {
                     writer.write(",");

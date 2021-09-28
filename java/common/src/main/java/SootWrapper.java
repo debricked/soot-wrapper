@@ -44,7 +44,7 @@ public class SootWrapper {
         Map<TargetSignature, Set<SourceSignature>> calls = new HashMap<>();
         Set<SootMethod> analysedMethods = new HashSet<>();
         for (SootMethod m : Scene.v().getEntryPoints()) {
-            analyseMethod(calls, cg, m, analysedMethods, m); // todo ideally we also want first target and line number of call
+            analyseMethod(calls, cg, m, analysedMethods, m, null, -1);
             entryClasses.add(m.getDeclaringClass());
         }
 
@@ -69,7 +69,14 @@ public class SootWrapper {
         return new AnalysisResult(calls, phantoms, badPhantoms);
     }
 
-    private static void analyseMethod(Map<TargetSignature, Set<SourceSignature>> calls, CallGraph cg, SootMethod m, Set<SootMethod> analysedMethods, SootMethod originatingMethod) {
+    private static void analyseMethod(
+            Map<TargetSignature, Set<SourceSignature>> calls,
+            CallGraph cg,
+            SootMethod m,
+            Set<SootMethod> analysedMethods,
+            SootMethod originatingMethod,
+            SootMethod firstDependencyMethod,
+            int lineNumberFirstDependencyMethod) {
         analysedMethods.add(m);
         Set<SourceSignature> sourceSignatures = new HashSet<>();
         Iterator<Edge> edgesInto = cg.edgesInto(m);
@@ -85,29 +92,34 @@ public class SootWrapper {
             SourceSignature sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
             sourceSignatures.add(sourceSignature);
         }
-        calls.put(getFormattedTargetSignature(m, originatingMethod), sourceSignatures);
+        calls.put(getFormattedTargetSignature(m, originatingMethod, firstDependencyMethod, lineNumberFirstDependencyMethod), sourceSignatures);
 
         Iterator<Edge> edgesOut = cg.edgesOutOf(m);
         while (edgesOut.hasNext()) {
             Edge e = edgesOut.next();
             MethodOrMethodContext target = e.getTgt();
-            SootMethod targetMethod;
-            if (target instanceof MethodContext) {
-                targetMethod = target.method();
-            } else {
-                targetMethod = (SootMethod) target;
-            }
+            SootMethod targetMethod = target instanceof MethodContext ? target.method() : (SootMethod) target;
             if (!analysedMethods.contains(targetMethod)) {
-                analyseMethod(calls, cg, targetMethod, analysedMethods, originatingMethod);
+                if (firstDependencyMethod == null) {
+                    analyseMethod(calls, cg, targetMethod, analysedMethods, originatingMethod, targetMethod, targetMethod.getJavaSourceStartLineNumber());
+                } else {
+                    analyseMethod(calls, cg, targetMethod, analysedMethods, originatingMethod, firstDependencyMethod, lineNumberFirstDependencyMethod);
+                }
             }
         }
     }
 
     private static SourceSignature getFormattedSourceSignature(SootMethod method, int lineNumber) {
-        return new SourceSignature(getSignatureString(method), lineNumber);
+        return method == null
+                ? new SourceSignature("-", -1)
+                : new SourceSignature(getSignatureString(method), lineNumber);
     }
 
-    private static TargetSignature getFormattedTargetSignature(SootMethod method, SootMethod originatingMethod) {
+    private static TargetSignature getFormattedTargetSignature(
+            SootMethod method,
+            SootMethod originatingMethod,
+            SootMethod firstDependencyCall,
+            int lineNumberFirstDependencyCall) {
         return new TargetSignature(
                 getSignatureString(method),
                 method.getDeclaringClass().isApplicationClass(),
@@ -116,7 +128,8 @@ public class SootWrapper {
                 getProbableName(method.getDeclaringClass()),
                 method.getJavaSourceStartLineNumber(),
                 -1, // todo source end line number
-                getSignatureString(originatingMethod)
+                getSignatureString(originatingMethod),
+                getFormattedSourceSignature(firstDependencyCall, lineNumberFirstDependencyCall)
         );
     }
 
