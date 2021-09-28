@@ -101,7 +101,7 @@ public class SootWrapper {
             SootMethod targetMethod = target instanceof MethodContext ? target.method() : (SootMethod) target;
             if (!analysedMethods.contains(targetMethod)) {
                 if (firstDependencyMethod == null) {
-                    analyseMethod(calls, cg, targetMethod, analysedMethods, originatingMethod, targetMethod, targetMethod.getJavaSourceStartLineNumber());
+                    analyseMethod(calls, cg, targetMethod, analysedMethods, originatingMethod, targetMethod, e.srcStmt().getJavaSourceStartLineNumber());
                 } else {
                     analyseMethod(calls, cg, targetMethod, analysedMethods, originatingMethod, firstDependencyMethod, lineNumberFirstDependencyMethod);
                 }
