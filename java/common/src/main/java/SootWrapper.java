@@ -44,8 +44,14 @@ public class SootWrapper {
         Map<TargetSignature, Set<SourceSignature>> calls = new HashMap<>();
         Set<SootMethod> analysedMethods = new HashSet<>();
         for (SootMethod m : Scene.v().getEntryPoints()) {
+            if (m.isJavaLibraryMethod()) {
+                continue;
+            }
             analyseMethod(calls, cg, m, analysedMethods, m, null, -1);
             entryClasses.add(m.getDeclaringClass());
+        }
+        if (entryClasses.isEmpty()) {
+            throw new RuntimeException("Error: Found no entry points. Do path(s) to user code contain compiled user code?");
         }
 
         Set<String> phantoms = new HashSet<>();

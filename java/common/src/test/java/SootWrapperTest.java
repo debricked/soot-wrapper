@@ -1,6 +1,7 @@
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -182,6 +183,53 @@ public class SootWrapperTest {
         assertMethodIsCalledByMethods(calls, "Dependency$1.anonymousClassMethod()", new String[]{
                 "Dependency$1.interfaceMethod()"
         });
+    }
+
+    @Test
+    public void testHandlesBadArguments() {
+        Cli cli = new Cli();
+        ArrayList<Path> paths = new ArrayList<>();
+        paths.add(Paths.get(basePath + "emptyFolder"));
+        cli.userCodePaths = paths;
+        cli.libraryCodePaths = paths;
+        boolean thrown = false;
+        try {
+            cli.call();
+        } catch (RuntimeException e) {
+            assertEquals("Error: Found no entry points. Do path(s) to user code contain compiled user code?", e.getMessage());
+            thrown = true;
+        } catch (Throwable e) {
+            fail(e.getMessage());
+        }
+        assertTrue(thrown);
+
+        thrown = false;
+        paths.clear();
+        paths.add(Paths.get("nonexistent"));
+        cli.userCodePaths = paths;
+        try {
+            cli.call();
+        } catch (FileNotFoundException e) {
+            assertEquals("Error: nonexistent can't be found", e.getMessage());
+            thrown = true;
+        } catch (Throwable e) {
+            fail(e.getMessage());
+        }
+        assertTrue(thrown);
+
+        thrown = false;
+        paths.clear();
+        paths.add(Paths.get("/dev/null"));
+        cli.userCodePaths = paths;
+        try {
+            cli.call();
+        } catch (IllegalArgumentException e) {
+            assertEquals("Error: /dev/null is not a directory", e.getMessage());
+            thrown = true;
+        } catch (Throwable e) {
+            fail(e.getMessage());
+        }
+        assertTrue(thrown);
     }
 
     // This test takes too long to run in the pipeline
