@@ -1,9 +1,9 @@
-public class LibraryClass {
+public class OneLibraryClass {
     public static void libraryMethod() {
         privateLibraryMethod();
     }
 
     private static void privateLibraryMethod() {
-        int a = 3;
+        System.out.println("first");
     }
 }

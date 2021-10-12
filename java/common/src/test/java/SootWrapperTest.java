@@ -186,22 +186,33 @@ public class SootWrapperTest {
     }
 
     @Test
-    public void testSeveralPathToUserCode() {
+    public void testSeveralPaths() {
         AnalysisResult res = SootWrapper.doAnalysis(
-                Arrays.asList(Paths.get(basePath + "testSeveralPathToUserCode/firstUserCode"), Paths.get(basePath + "testSeveralPathToUserCode/secondUserCode")),
-                Collections.singletonList(Paths.get(basePath + "testSeveralPathToUserCode/libraryCode")));
+                Arrays.asList(Paths.get(basePath + "testSeveralPaths/firstUserCode"), Paths.get(basePath + "testSeveralPaths/secondUserCode")),
+                Arrays.asList(Paths.get(basePath + "testSeveralPaths/firstLibraryCode"), Paths.get(basePath + "testSeveralPaths/secondLibraryCode")));
         Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
         assertTrue(res.getBadPhantoms().isEmpty(),
                 String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
         assertTrue(res.getPhantoms().isEmpty(),
                 String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
 
-        assertMethodIsCalledByMethods(calls, "LibraryClass.libraryMethod()", new String[]{
+        assertMethodIsCalledByMethods(calls, "OneLibraryClass.libraryMethod()", new String[]{
                 "FirstUserCode.oneMethod()",
                 "SecondUserCode.oneMethod()",
         });
-        assertMethodIsCalledByMethods(calls, "LibraryClass.privateLibraryMethod()", new String[]{
-                "LibraryClass.libraryMethod()",
+        assertMethodIsCalledByMethods(calls, "OneLibraryClass.privateLibraryMethod()", new String[]{
+                "OneLibraryClass.libraryMethod()",
+        });
+        assertMethodIsCalledByMethods(calls, "java.io.PrintStream.println(String)", new String[]{
+                "OneLibraryClass.privateLibraryMethod()",
+                "TwoLibraryClass.privateLibraryMethod()",
+        });
+        assertMethodIsCalledByMethods(calls, "TwoLibraryClass.libraryMethod()", new String[]{
+                "FirstUserCode.oneMethod()",
+                "SecondUserCode.oneMethod()",
+        });
+        assertMethodIsCalledByMethods(calls, "TwoLibraryClass.privateLibraryMethod()", new String[]{
+                "TwoLibraryClass.libraryMethod()",
         });
     }
 
