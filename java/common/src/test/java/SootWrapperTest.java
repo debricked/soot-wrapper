@@ -186,6 +186,26 @@ public class SootWrapperTest {
     }
 
     @Test
+    public void testSeveralPathToUserCode() {
+        AnalysisResult res = SootWrapper.doAnalysis(
+                Arrays.asList(Paths.get(basePath + "testSeveralPathToUserCode/firstUserCode"), Paths.get(basePath + "testSeveralPathToUserCode/secondUserCode")),
+                Collections.singletonList(Paths.get(basePath + "testSeveralPathToUserCode/libraryCode")));
+        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
+        assertTrue(res.getBadPhantoms().isEmpty(),
+                String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
+        assertTrue(res.getPhantoms().isEmpty(),
+                String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
+
+        assertMethodIsCalledByMethods(calls, "LibraryClass.libraryMethod()", new String[]{
+                "FirstUserCode.oneMethod()",
+                "SecondUserCode.oneMethod()",
+        });
+        assertMethodIsCalledByMethods(calls, "LibraryClass.privateLibraryMethod()", new String[]{
+                "LibraryClass.libraryMethod()",
+        });
+    }
+
+    @Test
     public void testHandlesBadArguments() {
         Cli cli = new Cli();
         ArrayList<Path> paths = new ArrayList<>();

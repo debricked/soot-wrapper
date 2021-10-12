@@ -17,9 +17,9 @@ public class SootWrapper {
                 ,"--no-bodies-for-excluded" // Don't analyse default classes (java.* etc.) Significantly reduces running time, but means we lose out on calls that go from JDK and into code to analyse
                 ,"--output-format", "none"  // We don't care about the output
                 ,"--keep-line-number"       // Keep line numbers
-                ,"--process-path"           // Process the pathToClassFiles dirs
         ));
         for (Path p : pathToClassFiles) {
+            argsList.add("--process-path"); // Process the pathToClassFiles dirs
             argsList.add(p.toAbsolutePath().toString());
         }
 
