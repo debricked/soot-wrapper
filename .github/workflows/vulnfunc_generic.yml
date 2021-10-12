@@ -15,4 +15,4 @@ jobs:
     - uses: debricked/vulnerable-functionality/java@master
       with:
         path-to-compiled-files: 'java/common/target/classes/'
-	path-to-library-files: 'java/common/dependencies'
+        path-to-library-files: 'java/common/dependencies'
