@@ -12,8 +12,8 @@ jobs:
       with:
         java-version: '11'
     - run: mvn -B -f java/common package dependency:copy-dependencies -DoutputDirectory=java/common/dependencies -DskipTests
-    - run: ls java/common
-    - run: ls java/common/dependencies
+    - run: ls -RF java
+    - run: ls -RF
     - uses: debricked/vulnerable-functionality/java@master
       with:
         path-to-compiled-files: 'java/common/target/classes/'
