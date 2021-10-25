@@ -15,11 +15,6 @@ exitIfNotInstalled mvn maven
 
 cwd=`pwd`
 dependencyDir="${cwd%/}/dependencies"
-#echo "Copying dependencies to "$dependencyDir" for "$projectRootDirectory
-#mvn -q -B -f $projectRootDirectory dependency:copy-dependencies -DoutputDirectory=$dependencyDir --fail-at-end
-
-#echo "Compiling "$projectRootDirectory
-#mvn -q -B -f $projectRootDirectory compile --fail-at-end
 
 echo "Compiling and moving dependencies"
 mvn -q -B -f $projectRootDirectory package dependency:copy-dependencies -DoutputDirectory=$dependencyDir -DskipTests
