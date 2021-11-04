@@ -9,17 +9,19 @@ exitIfNotInstalled java
 pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
 outputFileName=".debricked-call-graph"
 
+IFS_bkup=$IFS
+IFS=","
 userCodeArgs=""
 for path in $1
 do
-	userCodeArgs+="-u "$path" "
+	userCodeArgs+="-u \""$path"\" "
 done
-
 libraryCodeArgs=""
 for path in $2
 do
-	libraryCodeArgs+="-l "$path" "
+	libraryCodeArgs+="-l \""$path"\" "
 done
+IFS=$IFS_bkup
 
 echo "Running SootWrapper"
 java -jar $pathToSootWrapper $userCodeArgs$libraryCodeArgs-f $outputFileName
