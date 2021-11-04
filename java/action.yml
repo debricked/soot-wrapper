@@ -3,10 +3,10 @@ author: Debricked
 description: todo
 inputs:
   path-to-compiled-files:
-    description: Folder containing compiled files of the project (your code)
+    description: Space separated list of folders containing compiled files of the project (your code)
     required: true
   path-to-library-files:
-    description: Folder containing jars of all dependencies used (library code)
+    description: Space separated list of folders containing jars of all dependencies used (library code)
     required: true
 runs:
   using: docker
