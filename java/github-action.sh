@@ -24,7 +24,7 @@ done
 IFS=$IFS_bkup
 
 echo "Running SootWrapper"
-ls
+ls -R
 echo $pathToSootWrapper $userCodeArgs$libraryCodeArgs-f $outputFileName
 java -jar $pathToSootWrapper $userCodeArgs$libraryCodeArgs-f $outputFileName
 
