@@ -14,12 +14,12 @@ IFS=","
 userCodeArgs=""
 for path in $1
 do
-	userCodeArgs+="-u \""$path"\" "
+	userCodeArgs+="-u "$path" "
 done
 libraryCodeArgs=""
 for path in $2
 do
-	libraryCodeArgs+="-l \""$path"\" "
+	libraryCodeArgs+="-l "$path" "
 done
 IFS=$IFS_bkup
 
