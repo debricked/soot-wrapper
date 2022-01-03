@@ -7,9 +7,11 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class SootWrapper {
+    public static final String ERR_NO_ENTRY_POINTS = "Error: Found no entry points. Do path(s) to user code contain compiled user code?";
+
     private static final String[] skipClassesStartingWith = {"java.", "javax.", "jdk.internal.", "sun.", "soot.dummy.InvokeDynamic"};
 
-    public static AnalysisResult doAnalysis(Collection<Path> pathToClassFiles, Collection<Path> pathToLibs) {
+    public static AnalysisResult doAnalysis(Iterable<Path> pathToClassFiles, Iterable<Path> pathToLibs) {
         G.reset(); // Reset to start fresh in case we do several analyses
 
         ArrayList<String> argsList = new ArrayList<>(Arrays.asList(
@@ -40,7 +42,7 @@ public class SootWrapper {
 
         CallGraph cg = Scene.v().getCallGraph();
 
-        Set<SootClass> entryClasses = new HashSet<>();
+        Collection<SootClass> entryClasses = new HashSet<>();
         Map<TargetSignature, Set<SourceSignature>> calls = new HashMap<>();
         Set<SootMethod> analysedMethods = new HashSet<>();
         for (SootMethod m : Scene.v().getEntryPoints()) {
@@ -51,7 +53,7 @@ public class SootWrapper {
             entryClasses.add(m.getDeclaringClass());
         }
         if (entryClasses.isEmpty()) {
-            throw new RuntimeException("Error: Found no entry points. Do path(s) to user code contain compiled user code?");
+            throw new RuntimeException(ERR_NO_ENTRY_POINTS);
         }
 
         Set<String> phantoms = new HashSet<>();
@@ -183,7 +185,7 @@ public class SootWrapper {
             sb.append(":");
         }
         String jarsPath = sb.toString();
-        return jarsPath.equals("") ? jarsPath : jarsPath.substring(0, jarsPath.length()-1);
+        return jarsPath.isEmpty() ? jarsPath : jarsPath.substring(0, jarsPath.length()-1);
     }
 
     private static Set<String> getJarsInFoldersAndSubfolders(Path p, Set<String> set) {
