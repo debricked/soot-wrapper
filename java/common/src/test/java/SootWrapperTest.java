@@ -65,7 +65,7 @@ public class SootWrapperTest {
         assertMethodIsCalledByMethods(calls, "jarDependency.JarDependency.nestedMethodCalledFromMethodCalledFromNotMain()", new String[]{
                 "jarDependency.JarDependency.dependencyMethodCalledFromNotMain()"
         });
-        String[] unwantedSignatures = new String[]{
+        String[] unwantedSignatures = {
                 "classDependency.ClassDependency.nestedMethodOnlyCalledFromDependencyMethodNotCalled()"
                 ,"classDependency.ClassDependency.dependencyMethodNotCalled()"
                 ,"jarDependency.JarDependency.nestedMethodOnlyCalledFromDependencyMethodNotCalled()"
@@ -227,7 +227,7 @@ public class SootWrapperTest {
         try {
             cli.call();
         } catch (RuntimeException e) {
-            assertEquals("Error: Found no entry points. Do path(s) to user code contain compiled user code?", e.getMessage());
+            assertEquals(SootWrapper.ERR_NO_ENTRY_POINTS, e.getMessage());
             thrown = true;
         } catch (Throwable e) {
             fail(e.getMessage());
@@ -302,7 +302,7 @@ public class SootWrapperTest {
         }
     }
 
-    private void assertMethodIsCalledByMethods(Map<TargetSignature, Set<SourceSignature>> calls, String callee, String[] callers) {
+    private static void assertMethodIsCalledByMethods(Map<TargetSignature, Set<SourceSignature>> calls, String callee, String[] callers) {
         boolean found = false;
         TargetSignature index = null;
         for (TargetSignature callGraphCallee : calls.keySet()) {
