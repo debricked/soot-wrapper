@@ -217,6 +217,36 @@ public class SootWrapperTest {
     }
 
     @Test
+    public void testSeveralRoots() {
+        AnalysisResult res = SootWrapper.doAnalysis(
+                Collections.singletonList(Paths.get(basePath + "testSeveralRoots/userCode")),
+                Collections.singletonList(Paths.get(basePath + "testSeveralRoots/dependencies")));
+        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
+        assertTrue(res.getBadPhantoms().isEmpty(),
+                String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
+        assertTrue(res.getPhantoms().isEmpty(),
+                String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
+        // For all dependency functions, userFunctionA, userFunctionB and userFunctionC should be in the shortcut list
+        Collection<String> dependencyFunctions = new HashSet<>(Arrays.asList(
+                "Dependency.dependencyFunctionOne()",
+                "Dependency.dependencyFunctionTwo()",
+                "Dependency.dependencyFunctionThree()",
+                "Dependency.dependencyFunctionFour()",
+                "Dependency.dependencyFunctionFive()"
+        ));
+        boolean found = false;
+        for (TargetSignature t : calls.keySet()) {
+            if (dependencyFunctions.contains(t.getMethod())) {
+                assertEquals("Main.userFunctionA()", t.getUserCodeMethod());
+                assertEquals("Main.userFunctionB()", t.getUserCodeMethod());
+                assertEquals("Main.userFunctionC()", t.getUserCodeMethod());
+                found = true;
+            }
+        }
+        assertTrue(found);
+    }
+
+    @Test
     public void testHandlesBadArguments() {
         Cli cli = new Cli();
         ArrayList<Path> paths = new ArrayList<>();
