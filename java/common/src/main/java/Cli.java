@@ -17,7 +17,7 @@ class Cli implements Callable<Integer> {
     @CommandLine.Option(names = {"-l", "--library-code"}, description = "Path(s) to library code", required = true)
     Collection<Path> libraryCodePaths;
 
-    @CommandLine.Option(names = {"-f", "--output-file"}, description = "Path to output file for the call graph. Default is stdout")
+    @CommandLine.Option(names = {"-o", "-f", "--output-file"}, description = "Path to output file for the call graph. Default is stdout")
     File outputFile;
 
     public static void main(String[] args) {
