@@ -1,3 +1,5 @@
+import org.json.JSONArray;
+import org.json.JSONWriter;
 import picocli.CommandLine;
 
 import java.io.*;
@@ -8,7 +10,7 @@ import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "SootWrapper")
 class Cli implements Callable<Integer> {
-    private static final String CALLGRAPH_VERSION = "3";
+    private static final int CALLGRAPH_VERSION = 4;
     private static final String MINOR_VERSION = "0";
 
     @CommandLine.Option(names = {"-u", "--user-code"}, description = "Path(s) to user code", required = true)
@@ -21,7 +23,7 @@ class Cli implements Callable<Integer> {
     File outputFile;
 
     public static void main(String[] args) {
-        System.err.printf("Running SootWrapper version %s.%s%n", CALLGRAPH_VERSION, MINOR_VERSION);
+        System.err.printf("Running SootWrapper version %d.%s%n", CALLGRAPH_VERSION, MINOR_VERSION);
 
         CommandLine.IExecutionExceptionHandler errorHandler = (e, commandLine, parseResult) -> {
             commandLine.getErr().println(e.getMessage());
@@ -49,54 +51,45 @@ class Cli implements Callable<Integer> {
             writer = new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
         }
 
-        writer.write("{\n\t\"version\": ");
-        writer.write(CALLGRAPH_VERSION);
-        writer.write(",\n\t\"data\":\n\t[");
-
         AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
         Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
-        int i = 0;
-        for (TargetSignature callee : calls.keySet()) {
-            writer.write("\n\t\t[\n\t\t\t\"");
-            writer.write(callee.getMethod());
-            writer.write("\",\n\t\t\t");
-            writer.write(callee.isApplicationClass() ? "true" : "false");
-            writer.write(",\n\t\t\t");
-            writer.write(callee.isJavaLibraryClass() ? "true" : "false");
-            writer.write(",\n\t\t\t\"");
-            writer.write(callee.getClassName());
-            writer.write("\",\n\t\t\t\"");
-            writer.write(callee.getFileName());
-            writer.write("\",\n\t\t\t");
-            writer.write(Integer.toString(callee.getStartLineNumber()));
-            writer.write(",\n\t\t\t");
-            writer.write(Integer.toString(callee.getEndLineNumber()));
-            writer.write(",\n\t\t\t[\n\t\t\t\t\"");
-            ShortcutInfo first = callee.getShortcutInfos().iterator().next();
-            writer.write(first.getUserCodeMethod());
-            writer.write("\",\n\t\t\t\t");
-            writer.write(Integer.toString(first.getFirstDependencyCall().getLineNumber()));
-            writer.write(",\n\t\t\t\t\"");
-            writer.write(first.getFirstDependencyCall().getMethod());
-            writer.write("\"\n\t\t\t],\n\t\t\t[");
-            int j = 0;
-            for (SourceSignature caller : calls.get(callee)) {
-                writer.write("\n\t\t\t\t[\n\t\t\t\t\t\"");
-                writer.write(caller.getMethod());
-                writer.write("\",\n\t\t\t\t\t");
-                writer.write(Integer.toString(caller.getLineNumber()));
-                writer.write("\n\t\t\t\t]");
-                if (++j < calls.get(callee).size()) {
-                    writer.write(",");
-                }
+
+        JSONArray data = new JSONArray();
+        for (TargetSignature target : calls.keySet()) {
+            JSONArray callee = new JSONArray();
+            callee.put(target.getMethod());
+            callee.put(target.isApplicationClass());
+            callee.put(target.isJavaLibraryClass());
+            callee.put(target.getClassName());
+            callee.put(target.getFileName());
+            callee.put(target.getStartLineNumber());
+            callee.put(target.getEndLineNumber());
+            JSONArray shortcuts = new JSONArray();
+            for (ShortcutInfo s : target.getShortcutInfos()) {
+                JSONArray shortcut = new JSONArray();
+                shortcut.put(s.getUserCodeMethod());
+                shortcut.put(s.getFirstDependencyCall().getLineNumber());
+                shortcut.put(s.getFirstDependencyCall().getMethod());
+                shortcuts.put(shortcut);
             }
-            writer.write("\n\t\t\t]\n\t\t]");
-            if (++i < calls.size()) {
-                writer.write(",");
+            callee.put(shortcuts);
+            JSONArray callers = new JSONArray();
+            for (SourceSignature source : calls.get(target)) {
+                JSONArray caller = new JSONArray();
+                caller.put(source.getMethod());
+                caller.put(source.getLineNumber());
+                callers.put(caller);
             }
+            callee.put(callers);
+            data.put(callee);
         }
-        writer.write("\n\t]");
-        writer.write("\n}");
+
+        JSONWriter jwriter = new JSONWriter(writer);
+        jwriter.object();
+        jwriter.key("version").value(CALLGRAPH_VERSION);
+        jwriter.key("data").value(data);
+        jwriter.endObject();
+
         writer.close();
 
         int exitCode = 0;
