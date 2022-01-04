@@ -15,7 +15,7 @@ public class TargetSignature {
 
     private final int endLineNumber;
 
-    private Set<ShortcutInfo> shortcutInfos;
+    private final Set<ShortcutInfo> shortcutInfos;
 
     public TargetSignature(
             String method,
