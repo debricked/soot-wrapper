@@ -249,7 +249,7 @@ public class SootWrapperTest {
     @Test
     public void testHandlesBadArguments() {
         Cli cli = new Cli();
-        ArrayList<Path> paths = new ArrayList<>();
+        Collection<Path> paths = new ArrayList<>();
         paths.add(Paths.get(basePath + "emptyFolder"));
         cli.userCodePaths = paths;
         cli.libraryCodePaths = paths;

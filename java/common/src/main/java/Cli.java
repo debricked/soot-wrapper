@@ -12,10 +12,10 @@ class Cli implements Callable<Integer> {
     private static final String MINOR_VERSION = "0";
 
     @CommandLine.Option(names = {"-u", "--user-code"}, description = "Path(s) to user code", required = true)
-    ArrayList<Path> userCodePaths;
+    Collection<Path> userCodePaths;
 
     @CommandLine.Option(names = {"-l", "--library-code"}, description = "Path(s) to library code", required = true)
-    ArrayList<Path> libraryCodePaths;
+    Collection<Path> libraryCodePaths;
 
     @CommandLine.Option(names = {"-f", "--output-file"}, description = "Path to output file for the call graph. Default is stdout")
     File outputFile;
@@ -124,7 +124,7 @@ class Cli implements Callable<Integer> {
         return exitCode;
     }
 
-    private static void checkExistsAndIsDir(Collection<Path> paths) throws FileNotFoundException {
+    private static void checkExistsAndIsDir(Iterable<? extends Path> paths) throws FileNotFoundException {
         for (Path p : paths) {
             File f = p.toFile();
             if (!f.exists()) {
