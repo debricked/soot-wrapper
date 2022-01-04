@@ -72,11 +72,12 @@ class Cli implements Callable<Integer> {
             writer.write(",\n\t\t\t");
             writer.write(Integer.toString(callee.getEndLineNumber()));
             writer.write(",\n\t\t\t[\n\t\t\t\t\"");
-            writer.write(callee.getUserCodeMethod());
+            ShortcutInfo first = callee.getShortcutInfos().iterator().next();
+            writer.write(first.getUserCodeMethod());
             writer.write("\",\n\t\t\t\t");
-            writer.write(Integer.toString(callee.getFirstDependencyCall().getLineNumber()));
+            writer.write(Integer.toString(first.getFirstDependencyCall().getLineNumber()));
             writer.write(",\n\t\t\t\t\"");
-            writer.write(callee.getFirstDependencyCall().getMethod());
+            writer.write(first.getFirstDependencyCall().getMethod());
             writer.write("\"\n\t\t\t],\n\t\t\t[");
             int j = 0;
             for (SourceSignature caller : calls.get(callee)) {

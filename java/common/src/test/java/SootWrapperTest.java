@@ -101,7 +101,7 @@ public class SootWrapperTest {
                     assertEquals("Main.java", callee.getFileName());
                     assertEquals(2, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
-                    assertEquals("Main.method()", callee.getUserCodeMethod());
+                    assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[0] = true;
                     break;
                 case "Child.<init>()":
@@ -111,7 +111,7 @@ public class SootWrapperTest {
                     assertEquals("Child.java", callee.getFileName());
                     assertEquals(0, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
-                    assertEquals("Main.method()", callee.getUserCodeMethod());
+                    assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[1] = true;
                     break;
                 case "Parent.publicParentMethod()":
@@ -121,7 +121,7 @@ public class SootWrapperTest {
                     assertEquals("Parent.java", callee.getFileName());
                     assertEquals(2, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
-                    assertEquals("Main.method()", callee.getUserCodeMethod());
+                    assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[2] = true;
                     break;
                 case "Parent.privateParentMethod()":
@@ -131,7 +131,7 @@ public class SootWrapperTest {
                     assertEquals("Parent.java", callee.getFileName());
                     assertEquals(5, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
-                    assertEquals("Main.method()", callee.getUserCodeMethod());
+                    assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[3] = true;
                     break;
             }
@@ -236,10 +236,11 @@ public class SootWrapperTest {
         ));
         boolean found = false;
         for (TargetSignature t : calls.keySet()) {
+            ShortcutInfo first = t.getShortcutInfos().iterator().next();
             if (dependencyFunctions.contains(t.getMethod())) {
-                assertEquals("Main.userFunctionA()", t.getUserCodeMethod());
-                assertEquals("Main.userFunctionB()", t.getUserCodeMethod());
-                assertEquals("Main.userFunctionC()", t.getUserCodeMethod());
+                assertEquals("Main.userFunctionA()", first.getUserCodeMethod());
+                assertEquals("Main.userFunctionB()", first.getUserCodeMethod());
+                assertEquals("Main.userFunctionC()", first.getUserCodeMethod());
                 found = true;
             }
         }
