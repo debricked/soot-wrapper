@@ -101,6 +101,7 @@ public class SootWrapperTest {
                     assertEquals("Main.java", callee.getFileName());
                     assertEquals(2, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
+                    assertEquals(1, callee.getShortcutInfos().size());
                     assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[0] = true;
                     break;
@@ -111,6 +112,7 @@ public class SootWrapperTest {
                     assertEquals("Child.java", callee.getFileName());
                     assertEquals(0, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
+                    assertEquals(1, callee.getShortcutInfos().size());
                     assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[1] = true;
                     break;
@@ -121,6 +123,7 @@ public class SootWrapperTest {
                     assertEquals("Parent.java", callee.getFileName());
                     assertEquals(2, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
+                    assertEquals(1, callee.getShortcutInfos().size());
                     assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[2] = true;
                     break;
@@ -131,6 +134,7 @@ public class SootWrapperTest {
                     assertEquals("Parent.java", callee.getFileName());
                     assertEquals(5, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
+                    assertEquals(1, callee.getShortcutInfos().size());
                     assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[3] = true;
                     break;
@@ -245,6 +249,11 @@ public class SootWrapperTest {
                 boolean aFound = false;
                 boolean bFound = false;
                 boolean cFound = false;
+                if (dependencyFunctionsC.contains(t.getMethod())) {
+                    assertEquals(3, t.getShortcutInfos().size());
+                } else {
+                    assertEquals(2, t.getShortcutInfos().size());
+                }
                 for (ShortcutInfo i : t.getShortcutInfos()) {
                     switch (i.getUserCodeMethod()) {
                         case "Main.userFunctionA()":
