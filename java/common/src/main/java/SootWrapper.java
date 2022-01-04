@@ -44,12 +44,13 @@ public class SootWrapper {
 
         Collection<SootClass> entryClasses = new HashSet<>();
         Map<TargetSignature, Set<SourceSignature>> calls = new HashMap<>();
-        Set<SootMethod> analysedMethods = new HashSet<>();
+        Map<SootMethod, Set<SootMethod>> analysedMethods = new HashMap<>();
+        Map<SootMethod, TargetSignature> targetSignatureLookup = new HashMap<>();
         for (SootMethod m : Scene.v().getEntryPoints()) {
             if (m.isJavaLibraryMethod()) {
                 continue;
             }
-            analyseMethod(calls, cg, m, analysedMethods, m, null, -1);
+            analyseMethod(calls, cg, m, analysedMethods, targetSignatureLookup, m, null, -1);
             entryClasses.add(m.getDeclaringClass());
         }
         if (entryClasses.isEmpty()) {
@@ -81,37 +82,54 @@ public class SootWrapper {
             Map<TargetSignature, Set<SourceSignature>> calls,
             CallGraph cg,
             SootMethod m,
-            Set<SootMethod> analysedMethods,
+            Map<SootMethod, Set<SootMethod>> analysedMethods,
+            Map<SootMethod, TargetSignature> targetSignatureLookup,
             SootMethod originatingMethod,
             SootMethod firstDependencyMethod,
             int lineNumberFirstDependencyMethod) {
-        analysedMethods.add(m);
-        Set<SourceSignature> sourceSignatures = new HashSet<>();
-        Iterator<Edge> edgesInto = cg.edgesInto(m);
-        while (edgesInto.hasNext()) {
-            Edge e = edgesInto.next();
-            MethodOrMethodContext source = e.getSrc();
-            SootMethod sourceMethod;
-            if (source instanceof MethodContext) {
-                sourceMethod = source.method();
-            } else {
-                sourceMethod = (SootMethod) source;
-            }
-            SourceSignature sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
-            sourceSignatures.add(sourceSignature);
+        // Mark this combination of method and originating method as analysed
+        if (!analysedMethods.containsKey(m)) {
+            analysedMethods.put(m, new HashSet<>());
         }
-        calls.put(getFormattedTargetSignature(m, originatingMethod, firstDependencyMethod, lineNumberFirstDependencyMethod), sourceSignatures);
+        analysedMethods.get(m).add(originatingMethod);
+
+        // Create a lookup entry to we can find this targetSignature in the future
+        if (targetSignatureLookup.get(m) == null) {
+            targetSignatureLookup.put(m, getFormattedTargetSignature(m));
+        }
+
+        TargetSignature formattedTarget = targetSignatureLookup.get(m);
+        formattedTarget.getShortcutInfos().add(new ShortcutInfo(getSignatureString(originatingMethod), getFormattedSourceSignature(firstDependencyMethod, lineNumberFirstDependencyMethod)));
+        // If we have already analysed this target from some other root, we don't need to build relations, only add shortcut info
+        if (!calls.containsKey(formattedTarget)) {
+            Set<SourceSignature> sourceSignatures = new HashSet<>();
+            Iterator<Edge> edgesInto = cg.edgesInto(m);
+            while (edgesInto.hasNext()) {
+                Edge e = edgesInto.next();
+                MethodOrMethodContext source = e.getSrc();
+                SootMethod sourceMethod;
+                if (source instanceof MethodContext) {
+                    sourceMethod = source.method();
+                } else {
+                    sourceMethod = (SootMethod) source;
+                }
+                SourceSignature sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
+                sourceSignatures.add(sourceSignature);
+            }
+            calls.put(formattedTarget, sourceSignatures);
+        }
 
         Iterator<Edge> edgesOut = cg.edgesOutOf(m);
         while (edgesOut.hasNext()) {
             Edge e = edgesOut.next();
             MethodOrMethodContext target = e.getTgt();
             SootMethod targetMethod = target instanceof MethodContext ? target.method() : (SootMethod) target;
-            if (!analysedMethods.contains(targetMethod)) {
+            if (!(analysedMethods.containsKey(targetMethod) && analysedMethods.get(targetMethod).contains(originatingMethod))) {
                 if (firstDependencyMethod == null) {
-                    analyseMethod(calls, cg, targetMethod, analysedMethods, originatingMethod, targetMethod, e.srcStmt().getJavaSourceStartLineNumber());
+                    // This is the first dependency method
+                    analyseMethod(calls, cg, targetMethod, analysedMethods, targetSignatureLookup, originatingMethod, targetMethod, e.srcStmt().getJavaSourceStartLineNumber());
                 } else {
-                    analyseMethod(calls, cg, targetMethod, analysedMethods, originatingMethod, firstDependencyMethod, lineNumberFirstDependencyMethod);
+                    analyseMethod(calls, cg, targetMethod, analysedMethods, targetSignatureLookup, originatingMethod, firstDependencyMethod, lineNumberFirstDependencyMethod);
                 }
             }
         }
@@ -123,11 +141,7 @@ public class SootWrapper {
                 : new SourceSignature(getSignatureString(method), lineNumber);
     }
 
-    private static TargetSignature getFormattedTargetSignature(
-            SootMethod method,
-            SootMethod originatingMethod,
-            SootMethod firstDependencyCall,
-            int lineNumberFirstDependencyCall) {
+    private static TargetSignature getFormattedTargetSignature(SootMethod method) {
         return new TargetSignature(
                 getSignatureString(method),
                 method.getDeclaringClass().isApplicationClass(),
@@ -136,7 +150,7 @@ public class SootWrapper {
                 getProbableName(method.getDeclaringClass()),
                 method.getJavaSourceStartLineNumber(),
                 -1, // todo source end line number
-                new HashSet<>(List.of(new ShortcutInfo(getSignatureString(originatingMethod), getFormattedSourceSignature(firstDependencyCall, lineNumberFirstDependencyCall))))
+                new HashSet<>()
         );
     }
 

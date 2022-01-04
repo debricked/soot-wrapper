@@ -227,20 +227,56 @@ public class SootWrapperTest {
         assertTrue(res.getPhantoms().isEmpty(),
                 String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
         // For all dependency functions, userFunctionA, userFunctionB and userFunctionC should be in the shortcut list
-        Collection<String> dependencyFunctions = new HashSet<>(Arrays.asList(
+        Collection<String> dependencyFunctionsAll = new HashSet<>(Arrays.asList(
                 "Dependency.dependencyFunctionOne()",
                 "Dependency.dependencyFunctionTwo()",
                 "Dependency.dependencyFunctionThree()",
                 "Dependency.dependencyFunctionFour()",
                 "Dependency.dependencyFunctionFive()"
         ));
+        Collection<String> dependencyFunctionsC = new HashSet<>(Arrays.asList(
+                "Dependency.dependencyFunctionThree()",
+                "Dependency.dependencyFunctionFour()",
+                "Dependency.dependencyFunctionFive()"
+        ));
         boolean found = false;
         for (TargetSignature t : calls.keySet()) {
-            ShortcutInfo first = t.getShortcutInfos().iterator().next();
-            if (dependencyFunctions.contains(t.getMethod())) {
-                assertEquals("Main.userFunctionA()", first.getUserCodeMethod());
-                assertEquals("Main.userFunctionB()", first.getUserCodeMethod());
-                assertEquals("Main.userFunctionC()", first.getUserCodeMethod());
+            if (dependencyFunctionsAll.contains(t.getMethod())) {
+                boolean aFound = false;
+                boolean bFound = false;
+                boolean cFound = false;
+                for (ShortcutInfo i : t.getShortcutInfos()) {
+                    switch (i.getUserCodeMethod()) {
+                        case "Main.userFunctionA()":
+                            if (aFound) {
+                                fail("Duplicate userFunctionA");
+                            }
+                            aFound = true;
+                            break;
+                        case "Main.userFunctionB()":
+                            if (bFound) {
+                                fail("Duplicate userFunctionB");
+                            }
+                            bFound = true;
+                            break;
+                        case "Main.userFunctionC()":
+                            if (cFound) {
+                                fail("Duplicate userFunctionC");
+                            }
+                            cFound = true;
+                            break;
+                        default:
+                            fail("Unexpected userCodeMethod " + i.getUserCodeMethod());
+                            break;
+                    }
+                }
+                assertTrue(aFound);
+                assertTrue(bFound);
+                if (dependencyFunctionsC.contains(t.getMethod())) {
+                    assertTrue(cFound);
+                } else {
+                    assertFalse(cFound);
+                }
                 found = true;
             }
         }
@@ -309,10 +345,10 @@ public class SootWrapperTest {
                     "Cli.main(String[])"
             });
             assertMethodIsCalledByMethods(calls, "java.io.File.exists()", new String[]{
-                    "Cli.checkExistsAndIsDir(Collection)"
+                    "Cli.checkExistsAndIsDir(Iterable)"
             });
             assertMethodIsCalledByMethods(calls, "soot.G.reset()", new String[]{
-                    "SootWrapper.doAnalysis(Collection, Collection)"
+                    "SootWrapper.doAnalysis(Iterable, Iterable)"
             });
             assertMethodIsCalledByMethods(calls, "soot.jimple.toolkits.callgraph.CallGraph$TargetsOfMethodIterator.<init>(CallGraph, MethodOrMethodContext)", new String[]{ // todo Is this how we want subclass signatures to look?
                     "soot.jimple.toolkits.callgraph.CallGraph.edgesOutOf(MethodOrMethodContext)"
@@ -324,8 +360,8 @@ public class SootWrapperTest {
                     "soot.Main.run(String[])"
             });
             assertMethodIsCalledByMethods(calls, "soot.SootMethod.getDeclaringClass()", new String[]{
-                    "SootWrapper.getFormattedTargetSignature(SootMethod, SootMethod)"
-                    ,"SootWrapper.doAnalysis(Collection, Collection)"
+                    "SootWrapper.getFormattedTargetSignature(SootMethod)"
+                    ,"SootWrapper.doAnalysis(Iterable, Iterable)"
                     ,"SootWrapper.getSignatureString(SootMethod)"
             });
         } catch (Exception e) {
@@ -362,7 +398,7 @@ public class SootWrapperTest {
             if (!found) {
                 StringBuilder sourcesString = new StringBuilder();
                 for (SourceSignature sourceString : calls.get(index)) {
-                    sourcesString.append(sourceString.getMethod()).append(", ");
+                    sourcesString.append(String.format("%s:%d, ", sourceString.getMethod(), sourceString.getLineNumber()));
                 }
                 fail(String.format("Failed asserting that %s is called by %s. Set of calling methods: %s\n", callee, caller, sourcesString));
             }
