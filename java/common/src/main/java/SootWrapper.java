@@ -136,8 +136,7 @@ public class SootWrapper {
                 getProbableName(method.getDeclaringClass()),
                 method.getJavaSourceStartLineNumber(),
                 -1, // todo source end line number
-                getSignatureString(originatingMethod),
-                getFormattedSourceSignature(firstDependencyCall, lineNumberFirstDependencyCall)
+                new HashSet<>(List.of(new ShortcutInfo(getSignatureString(originatingMethod), getFormattedSourceSignature(firstDependencyCall, lineNumberFirstDependencyCall))))
         );
     }
 

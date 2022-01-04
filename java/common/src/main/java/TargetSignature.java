@@ -1,3 +1,5 @@
+import java.util.Set;
+
 public class TargetSignature {
     private final String method;
 
@@ -13,9 +15,7 @@ public class TargetSignature {
 
     private final int endLineNumber;
 
-    private final String userCodeMethod;
-
-    private final SourceSignature firstDependencyCall;
+    private Set<ShortcutInfo> shortcutInfos;
 
     public TargetSignature(
             String method,
@@ -25,8 +25,7 @@ public class TargetSignature {
             String fileName,
             int startLineNumber,
             int endLineNumber,
-            String userCodeMethod,
-            SourceSignature firstDependencyCall
+            Set<ShortcutInfo> shortcutInfos
     ) {
         this.method = method;
         this.isApplicationClass = isApplicationClass;
@@ -35,8 +34,7 @@ public class TargetSignature {
         this.fileName = fileName;
         this.startLineNumber = startLineNumber;
         this.endLineNumber = endLineNumber;
-        this.userCodeMethod = userCodeMethod;
-        this.firstDependencyCall = firstDependencyCall;
+        this.shortcutInfos = shortcutInfos;
     }
 
     public String getMethod() {
@@ -67,11 +65,7 @@ public class TargetSignature {
         return endLineNumber;
     }
 
-    public String getUserCodeMethod() {
-        return userCodeMethod;
-    }
-
-    public SourceSignature getFirstDependencyCall() {
-        return firstDependencyCall;
+    public Set<ShortcutInfo> getShortcutInfos() {
+        return shortcutInfos;
     }
 }
