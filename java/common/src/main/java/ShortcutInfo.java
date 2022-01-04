@@ -4,11 +4,6 @@ public class ShortcutInfo {
 
     private final SourceSignature firstDependencyCall;
 
-    public ShortcutInfo(String userCodeMethod, String firstDependencyCall, int lineNumberFirstDependencyCall) {
-        this.userCodeMethod = userCodeMethod;
-        this.firstDependencyCall = new SourceSignature(firstDependencyCall, lineNumberFirstDependencyCall);
-    }
-
     public ShortcutInfo(String userCodeMethod, SourceSignature firstDependencyCall) {
         this.userCodeMethod = userCodeMethod;
         this.firstDependencyCall = firstDependencyCall;
