@@ -6,9 +6,6 @@ pathToCommonDirectory="/vulnfunc/java/common"
 
 exitIfNotInstalled java
 
-pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
-outputFileName=".debricked-call-graph"
-
 IFS_bkup=$IFS
 IFS=","
 userCodeArgs=""
@@ -23,6 +20,8 @@ do
 done
 IFS=$IFS_bkup
 
+pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
+outputFileName=".debricked-call-graph"
 echo "Running SootWrapper"
 java -jar $pathToSootWrapper $userCodeArgs$libraryCodeArgs-f $outputFileName
 
