@@ -6,12 +6,17 @@ inputs:
     description: Folder containing the root pom.xml of the project to analyse
     required: false
     default: '.'
+  path-to-compiled-files:
+    description: Comma separated list of folders containing compiled files of the project (your code) as they appear after running `mvn compile`, relative to root-pom-directory
+    required: false
+    default: 'target/classes'
 runs:
   using: docker
   image: docker://debricked/vulnerable-functionality:maven
   entrypoint: /vulnfunc/java/maven/github-action.sh
   args:
     - ${{ inputs.root-pom-directory }}
+    - ${{ inputs.path-to-compiled-files }}
 branding:
   color: purple
   icon: filter
