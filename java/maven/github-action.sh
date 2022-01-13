@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+env
+
 set -xe
 
 pathToCommonDirectory="/vulnfunc/java/common"
