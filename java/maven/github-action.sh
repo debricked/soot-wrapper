@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -xe
 
 pathToCommonDirectory="/vulnfunc/java/common"
 . $pathToCommonDirectory"/commonWrapper.sh"
