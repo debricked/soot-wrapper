@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-env
-
-echo "JAVA_HOME: "$JAVA_HOME
-
 set -xe
 
 pathToCommonDirectory="/vulnfunc/java/common"
@@ -27,11 +23,12 @@ do
 done
 IFS=$IFS_bkup
 
+if ! [ -d "$JAVA_HOME" ] ; then
+	unset JAVA_HOME
+fi
+
 cwd=`pwd`
 dependencyDir="${cwd%/}/dependencies"
-echo "Compiling and moving dependencies"
-echo "JAVA_HOME: "$JAVA_HOME
-unset JAVA_HOME
 mvn -q -B -f $rootPomDirectory package dependency:copy-dependencies -DoutputDirectory=$dependencyDir -DskipTests
 
 pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
