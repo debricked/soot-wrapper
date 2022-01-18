@@ -1,9 +1,6 @@
-name: Build and push Docker images
+name: Build and push Docker images for branch
 
-on:
-  push:
-    branches:
-      - master
+on: [push]
 
 jobs:
   docker-maven:
@@ -37,8 +34,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-           ghcr.io/debricked/vulnerable-functionality:maven
-           debricked/vulnerable-functionality:maven
+           ghcr.io/debricked/vulnerable-functionality-maven:${GITHUB_REF##*/}
+           debricked/vulnerable-functionality-maven:${GITHUB_REF##*/}
 
   docker-gradle:
     runs-on: ubuntu-latest
@@ -71,8 +68,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-           ghcr.io/debricked/vulnerable-functionality:gradle
-           debricked/vulnerable-functionality:gradle
+           ghcr.io/debricked/vulnerable-functionality-gradle:${GITHUB_REF##*/}
+           debricked/vulnerable-functionality-gradle:${GITHUB_REF##*/}
 
   docker-java:
     runs-on: ubuntu-latest
@@ -105,5 +102,5 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-           ghcr.io/debricked/vulnerable-functionality:java
-           debricked/vulnerable-functionality:java
+           ghcr.io/debricked/vulnerable-functionality-java:${GITHUB_REF##*/}
+           debricked/vulnerable-functionality-java:${GITHUB_REF##*/}
