@@ -12,6 +12,9 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
+        name: Get tag
+        run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       -
@@ -36,8 +39,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-           ghcr.io/debricked/vulnerable-functionality-maven:${GITHUB_REF}
-           debricked/vulnerable-functionality-maven:${GITHUB_REF}
+           ghcr.io/debricked/vulnerable-functionality-maven:${{ env.TAG }}
+           debricked/vulnerable-functionality-maven:${{ env.TAG }}
 
   docker-gradle:
     runs-on: ubuntu-latest
@@ -45,6 +48,9 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v2
+      -
+        name: Get tag
+        run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -70,8 +76,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-           ghcr.io/debricked/vulnerable-functionality-gradle:${GITHUB_REF}
-           debricked/vulnerable-functionality-gradle:${GITHUB_REF}
+           ghcr.io/debricked/vulnerable-functionality-gradle:${{ env.TAG }}
+           debricked/vulnerable-functionality-gradle:${{ env.TAG }}
 
   docker-java:
     runs-on: ubuntu-latest
@@ -79,6 +85,9 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v2
+      -
+        name: Get tag
+        run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -104,5 +113,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-           ghcr.io/debricked/vulnerable-functionality-java:${GITHUB_REF}
-           debricked/vulnerable-functionality-java:${GITHUB_REF}
+           ghcr.io/debricked/vulnerable-functionality-java:${{ env.TAG }}
+           debricked/vulnerable-functionality-java:${{ env.TAG }}
+
