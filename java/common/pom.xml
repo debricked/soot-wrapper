@@ -69,7 +69,9 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
+		<configuration>
+		    <finalName>SootWrapper</finalName>
+		    <appendAssemblyId>false</appendAssemblyId>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>

@@ -33,7 +33,7 @@ cwd=`pwd`
 dependencyDir="${cwd%/}/dependencies"
 mvn -q -B -f $rootPomDirectory package dependency:copy-dependencies -DoutputDirectory=$dependencyDir -DskipTests
 
-pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
+pathToSootWrapper=$pathToCommonDirectory"/SootWrapper.jar"
 outputFileName=".debricked-call-graph"
 java -jar $pathToSootWrapper $userCodeArgs-l $dependencyDir -f $outputFileName
 

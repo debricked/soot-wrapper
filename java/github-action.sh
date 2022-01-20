@@ -22,7 +22,7 @@ do
 done
 IFS=$IFS_bkup
 
-pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
+pathToSootWrapper=$pathToCommonDirectory"/SootWrapper.jar"
 outputFileName=".debricked-call-graph"
 java -jar $pathToSootWrapper $userCodeArgs$libraryCodeArgs-f $outputFileName
 
