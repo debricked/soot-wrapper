@@ -58,9 +58,9 @@
                 <version>2.22.2</version>
             </plugin>
             <plugin>
-	        <groupId>org.apache.maven.plugins</groupId>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-		<version>3.3.0</version>
+                <version>3.3.0</version>
                 <executions>
                         <execution>
                         <phase>package</phase>
@@ -69,17 +69,17 @@
                         </goals>
                     </execution>
                 </executions>
-		<configuration>
-		    <finalName>SootWrapper</finalName>
-		    <appendAssemblyId>false</appendAssemblyId>
+                <configuration>
+                <finalName>SootWrapper</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-		    <archive>
-		        <manifest>
-			    <mainClass>Cli</mainClass>
-			</manifest>
-		    </archive>
+                    <archive>
+                        <manifest>
+                            <mainClass>Cli</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
