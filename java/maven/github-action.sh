@@ -31,6 +31,7 @@ fi
 
 cwd=`pwd`
 dependencyDir="${cwd%/}/dependencies"
+echo "Compiling and moving dependencies"
 mvn -q -B -f $rootPomDirectory package dependency:copy-dependencies -DoutputDirectory=$dependencyDir -DskipTests
 
 pathToSootWrapper=$pathToCommonDirectory"/SootWrapper.jar"
