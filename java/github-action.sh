@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+echo "Running vulnerable functionality for Java (generic) version 0.3.0"
+
 set -e
 
 pathToCommonDirectory="/vulnfunc/java/common"
@@ -22,7 +24,6 @@ IFS=$IFS_bkup
 
 pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
 outputFileName=".debricked-call-graph"
-echo "Running SootWrapper"
 java -jar $pathToSootWrapper $userCodeArgs$libraryCodeArgs-f $outputFileName
 
 formatOutput $outputFileName

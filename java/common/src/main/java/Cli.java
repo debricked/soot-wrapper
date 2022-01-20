@@ -8,7 +8,8 @@ import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "SootWrapper")
 class Cli implements Callable<Integer> {
-    private static final String VERSION = "3";
+    private static final String CALLGRAPH_VERSION = "3";
+    private static final String MINOR_VERSION = "0";
 
     @CommandLine.Option(names = {"-u", "--user-code"}, description = "Path(s) to user code", required = true)
     ArrayList<Path> userCodePaths;
@@ -20,6 +21,8 @@ class Cli implements Callable<Integer> {
     File outputFile;
 
     public static void main(String[] args) {
+        System.err.printf("Running SootWrapper version %s.%s%n", CALLGRAPH_VERSION, MINOR_VERSION);
+
         CommandLine.IExecutionExceptionHandler errorHandler = (e, commandLine, parseResult) -> {
             commandLine.getErr().println(e.getMessage());
             commandLine.usage(commandLine.getErr());
@@ -47,7 +50,7 @@ class Cli implements Callable<Integer> {
         }
 
         writer.write("{\n\t\"version\": ");
-        writer.write(VERSION);
+        writer.write(CALLGRAPH_VERSION);
         writer.write(",\n\t\"data\":\n\t[");
 
         AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);

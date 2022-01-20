@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-set -xe
+echo "Running vulnerable functionality for Java Maven version 0.3.0"
+
+set -e
 
 pathToCommonDirectory="/vulnfunc/java/common"
 . $pathToCommonDirectory"/commonWrapper.sh"
@@ -33,7 +35,6 @@ mvn -q -B -f $rootPomDirectory package dependency:copy-dependencies -DoutputDire
 
 pathToSootWrapper=$pathToCommonDirectory"/SootWrapper-0.1-jar-with-dependencies.jar"
 outputFileName=".debricked-call-graph"
-echo "Running SootWrapper"
 java -jar $pathToSootWrapper $userCodeArgs-l $dependencyDir -f $outputFileName
 
 formatOutput $outputFileName
