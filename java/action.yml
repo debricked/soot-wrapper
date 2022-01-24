@@ -10,7 +10,7 @@ inputs:
     required: true
 runs:
   using: docker
-  image: docker://debricked/vulnerable-functionality-java:v0.3.1
+  image: docker://debricked/vulnerable-functionality-java:v0.4.0
   entrypoint: /vulnfunc/java/github-action.sh
   args:
     - ${{ inputs.path-to-compiled-files }}

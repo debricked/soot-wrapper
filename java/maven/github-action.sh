@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Running vulnerable functionality for Java Maven version 0.3.1"
+echo "Running vulnerable functionality for Java Maven version 0.4.0"
 
 set -e
 
