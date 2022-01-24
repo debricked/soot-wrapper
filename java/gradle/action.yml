@@ -8,7 +8,7 @@ inputs:
     default: '.'
 runs:
   using: docker
-  image: docker://debricked/vulnerable-functionality-gradle:master
+  image: docker://debricked/vulnerable-functionality-gradle:v0.3.1
   entrypoint: /vulnfunc/java/gradle/github-action.sh
   args:
     - ${{ inputs.root-build-gradle-directory }}
