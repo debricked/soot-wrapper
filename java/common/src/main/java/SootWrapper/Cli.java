@@ -50,10 +50,14 @@ class Cli implements Callable<Integer> {
             writer = new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
         }
 
+        JSONWriter jwriter = new JSONWriter(writer);
+        jwriter.object();
+        jwriter.key("version").value(Cli.class.getPackage().getImplementationVersion().split("\\.")[0]);
+        jwriter = jwriter.key("data").array();
+
         AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
         Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
 
-        JSONArray data = new JSONArray();
         for (TargetSignature target : calls.keySet()) {
             JSONArray callee = new JSONArray();
             callee.put(target.getMethod());
@@ -80,15 +84,10 @@ class Cli implements Callable<Integer> {
                 callers.put(caller);
             }
             callee.put(callers);
-            data.put(callee);
+            jwriter.value(callee);
         }
 
-        JSONWriter jwriter = new JSONWriter(writer);
-        jwriter.object();
-        jwriter.key("version").value(Cli.class.getPackage().getImplementationVersion().split("\\.")[0]);
-        jwriter.key("data").value(data);
-        jwriter.endObject();
-
+        jwriter.endArray().endObject();
         writer.close();
 
         int exitCode = 0;
