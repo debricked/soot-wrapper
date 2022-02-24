@@ -1,3 +1,5 @@
+package SootWrapper;
+
 public class ShortcutInfo {
 
     private final String userCodeMethod;

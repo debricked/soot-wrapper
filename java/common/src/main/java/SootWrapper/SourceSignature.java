@@ -1,3 +1,5 @@
+package SootWrapper;
+
 public class SourceSignature {
     private final String method;
 

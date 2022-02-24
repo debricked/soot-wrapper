@@ -1,3 +1,5 @@
+package SootWrapper;
+
 import org.json.JSONArray;
 import org.json.JSONWriter;
 import picocli.CommandLine;
@@ -10,9 +12,6 @@ import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "SootWrapper")
 class Cli implements Callable<Integer> {
-    private static final int CALLGRAPH_VERSION = 4;
-    private static final String MINOR_VERSION = "0";
-
     @CommandLine.Option(names = {"-u", "--user-code"}, description = "Path(s) to user code", required = true)
     Collection<Path> userCodePaths;
 
@@ -23,7 +22,7 @@ class Cli implements Callable<Integer> {
     File outputFile;
 
     public static void main(String[] args) {
-        System.err.printf("Running SootWrapper version %d.%s%n", CALLGRAPH_VERSION, MINOR_VERSION);
+        System.err.printf("Running SootWrapper version %s%n", Cli.class.getPackage().getImplementationVersion());
 
         CommandLine.IExecutionExceptionHandler errorHandler = (e, commandLine, parseResult) -> {
             commandLine.getErr().println(e.getMessage());
@@ -86,7 +85,7 @@ class Cli implements Callable<Integer> {
 
         JSONWriter jwriter = new JSONWriter(writer);
         jwriter.object();
-        jwriter.key("version").value(CALLGRAPH_VERSION);
+        jwriter.key("version").value(Cli.class.getPackage().getImplementationVersion().split("\\.")[0]);
         jwriter.key("data").value(data);
         jwriter.endObject();
 

@@ -1,3 +1,5 @@
+package SootWrapper;
+
 import soot.*;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
