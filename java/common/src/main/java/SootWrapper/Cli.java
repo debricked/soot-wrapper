@@ -22,7 +22,7 @@ class Cli implements Callable<Integer> {
     File outputFile;
 
     public static void main(String[] args) {
-        System.err.printf("Running SootWrapper version %s%n", Cli.class.getPackage().getImplementationVersion());
+        System.err.printf("Running SootWrapper version %s%n", getFullVersion());
 
         CommandLine.IExecutionExceptionHandler errorHandler = (e, commandLine, parseResult) -> {
             commandLine.getErr().println(e.getMessage());
@@ -52,7 +52,7 @@ class Cli implements Callable<Integer> {
 
         JSONWriter jwriter = new JSONWriter(writer);
         jwriter.object();
-        jwriter.key("version").value(Cli.class.getPackage().getImplementationVersion().split("\\.")[0]);
+        jwriter.key("version").value(getCallGraphVersion());
         jwriter = jwriter.key("data").array();
 
         AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
@@ -126,6 +126,15 @@ class Cli implements Callable<Integer> {
                 throw new IllegalArgumentException(String.format("Error: %s is not a directory", p));
             }
         }
+    }
+
+    private static String getFullVersion() {
+        String versionFromJar = Cli.class.getPackage().getImplementationVersion();
+        return versionFromJar == null ? "?.?" : versionFromJar;
+    }
+
+    private static String getCallGraphVersion() {
+        return getFullVersion().split("\\.")[0];
     }
 
 }
