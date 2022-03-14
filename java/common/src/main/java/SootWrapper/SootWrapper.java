@@ -129,7 +129,7 @@ public class SootWrapper {
             if (!(analysedMethods.containsKey(targetMethod) && analysedMethods.get(targetMethod).contains(originatingMethod))) {
                 if (firstDependencyMethod == null) {
                     // This is the first dependency method
-                    analyseMethod(calls, cg, targetMethod, analysedMethods, targetSignatureLookup, originatingMethod, targetMethod, e.srcStmt().getJavaSourceStartLineNumber());
+                    analyseMethod(calls, cg, targetMethod, analysedMethods, targetSignatureLookup, originatingMethod, targetMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
                 } else {
                     analyseMethod(calls, cg, targetMethod, analysedMethods, targetSignatureLookup, originatingMethod, firstDependencyMethod, lineNumberFirstDependencyMethod);
                 }
