@@ -1,5 +1,7 @@
 package SootWrapper;
 
+import org.json.JSONArray;
+import org.json.JSONWriter;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -27,14 +29,9 @@ public class SootWrapperTest {
 
     @Test
     public void testDependencyTracesAreIncludedAndUnusedUserCodeMethodsAreIncludedAndUnusedDependencyMethodsAreNotIncluded() {
-        AnalysisResult res = SootWrapper.doAnalysis(
+        Map<TargetSignature, Set<SourceSignature>> calls = getCallGraphMap(
                 Collections.singletonList(Paths.get(basePath + "testDependencyTracesAreIncluded/userCode")),
                 Collections.singletonList(Paths.get(basePath + "testDependencyTracesAreIncluded/dependencies")));
-        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
-        assertTrue(res.getBadPhantoms().isEmpty(),
-                String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
-        assertTrue(res.getPhantoms().isEmpty(),
-                String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
         assertMethodIsCalledByMethods(calls, "classDependency.ClassDependency.<init>()", new String[]{
                 "Main.main(String[])"
                 ,"Main.unusedUserCodeMethod()"
@@ -85,14 +82,9 @@ public class SootWrapperTest {
 
     @Test
     public void testInheritance() {
-        AnalysisResult res = SootWrapper.doAnalysis(
+        Map<TargetSignature, Set<SourceSignature>> calls = getCallGraphMap(
                 Collections.singletonList(Paths.get(basePath + "testInheritance/userCode")),
                 Collections.singletonList(Paths.get(basePath + "testInheritance/dependencies")));
-        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
-        assertTrue(res.getBadPhantoms().isEmpty(),
-                String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
-        assertTrue(res.getPhantoms().isEmpty(),
-                String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
         boolean[] founds = { false, false, false, false };
         for (TargetSignature callee : calls.keySet()) {
             switch (callee.getMethod()) {
@@ -103,8 +95,6 @@ public class SootWrapperTest {
                     assertEquals("Main.java", callee.getFileName());
                     assertEquals(2, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
-                    assertEquals(1, callee.getShortcutInfos().size());
-                    assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[0] = true;
                     break;
                 case "Child.<init>()":
@@ -114,8 +104,6 @@ public class SootWrapperTest {
                     assertEquals("Child.java", callee.getFileName());
                     assertEquals(0, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
-                    assertEquals(1, callee.getShortcutInfos().size());
-                    assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[1] = true;
                     break;
                 case "Parent.publicParentMethod()":
@@ -125,8 +113,6 @@ public class SootWrapperTest {
                     assertEquals("Parent.java", callee.getFileName());
                     assertEquals(2, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
-                    assertEquals(1, callee.getShortcutInfos().size());
-                    assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[2] = true;
                     break;
                 case "Parent.privateParentMethod()":
@@ -136,8 +122,6 @@ public class SootWrapperTest {
                     assertEquals("Parent.java", callee.getFileName());
                     assertEquals(5, callee.getStartLineNumber());
                     assertEquals(-1, callee.getEndLineNumber());
-                    assertEquals(1, callee.getShortcutInfos().size());
-                    assertEquals("Main.method()", callee.getShortcutInfos().iterator().next().getUserCodeMethod());
                     founds[3] = true;
                     break;
             }
@@ -157,14 +141,9 @@ public class SootWrapperTest {
 
     @Test
     public void testPrivateAndAnonymousClasses() {
-        AnalysisResult res = SootWrapper.doAnalysis(
+        Map<TargetSignature, Set<SourceSignature>> calls = getCallGraphMap(
                 Collections.singletonList(Paths.get(basePath + "testPrivateAndAnonymousClasses/userCode")),
                 Collections.singletonList(Paths.get(basePath + "testPrivateAndAnonymousClasses/dependencies")));
-        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
-        assertTrue(res.getBadPhantoms().isEmpty(),
-                String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
-        assertTrue(res.getPhantoms().isEmpty(),
-                String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
         assertMethodIsCalledByMethods(calls, "Dependency.<init>()", new String[]{
                 "UserCode.main(String[])"
         });
@@ -193,14 +172,9 @@ public class SootWrapperTest {
 
     @Test
     public void testSeveralPaths() {
-        AnalysisResult res = SootWrapper.doAnalysis(
+        Map<TargetSignature, Set<SourceSignature>> calls = getCallGraphMap(
                 Arrays.asList(Paths.get(basePath + "testSeveralPaths/firstUserCode"), Paths.get(basePath + "testSeveralPaths/secondUserCode")),
                 Arrays.asList(Paths.get(basePath + "testSeveralPaths/firstLibraryCode"), Paths.get(basePath + "testSeveralPaths/secondLibraryCode")));
-        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
-        assertTrue(res.getBadPhantoms().isEmpty(),
-                String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
-        assertTrue(res.getPhantoms().isEmpty(),
-                String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
 
         assertMethodIsCalledByMethods(calls, "OneLibraryClass.libraryMethod()", new String[]{
                 "FirstUserCode.oneMethod()",
@@ -220,78 +194,6 @@ public class SootWrapperTest {
         assertMethodIsCalledByMethods(calls, "TwoLibraryClass.privateLibraryMethod()", new String[]{
                 "TwoLibraryClass.libraryMethod()",
         });
-    }
-
-    @Test
-    public void testSeveralRoots() {
-        AnalysisResult res = SootWrapper.doAnalysis(
-                Collections.singletonList(Paths.get(basePath + "testSeveralRoots/userCode")),
-                Collections.singletonList(Paths.get(basePath + "testSeveralRoots/dependencies")));
-        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
-        assertTrue(res.getBadPhantoms().isEmpty(),
-                String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
-        assertTrue(res.getPhantoms().isEmpty(),
-                String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
-        // For all dependency functions, userFunctionA, userFunctionB and userFunctionC should be in the shortcut list
-        Collection<String> dependencyFunctionsAll = new HashSet<>(Arrays.asList(
-                "Dependency.dependencyFunctionOne()",
-                "Dependency.dependencyFunctionTwo()",
-                "Dependency.dependencyFunctionThree()",
-                "Dependency.dependencyFunctionFour()",
-                "Dependency.dependencyFunctionFive()"
-        ));
-        Collection<String> dependencyFunctionsC = new HashSet<>(Arrays.asList(
-                "Dependency.dependencyFunctionThree()",
-                "Dependency.dependencyFunctionFour()",
-                "Dependency.dependencyFunctionFive()"
-        ));
-        boolean found = false;
-        for (TargetSignature t : calls.keySet()) {
-            if (dependencyFunctionsAll.contains(t.getMethod())) {
-                boolean aFound = false;
-                boolean bFound = false;
-                boolean cFound = false;
-                if (dependencyFunctionsC.contains(t.getMethod())) {
-                    assertEquals(3, t.getShortcutInfos().size());
-                } else {
-                    assertEquals(2, t.getShortcutInfos().size());
-                }
-                for (ShortcutInfo i : t.getShortcutInfos()) {
-                    switch (i.getUserCodeMethod()) {
-                        case "Main.userFunctionA()":
-                            if (aFound) {
-                                fail("Duplicate userFunctionA");
-                            }
-                            aFound = true;
-                            break;
-                        case "Main.userFunctionB()":
-                            if (bFound) {
-                                fail("Duplicate userFunctionB");
-                            }
-                            bFound = true;
-                            break;
-                        case "Main.userFunctionC()":
-                            if (cFound) {
-                                fail("Duplicate userFunctionC");
-                            }
-                            cFound = true;
-                            break;
-                        default:
-                            fail("Unexpected userCodeMethod " + i.getUserCodeMethod());
-                            break;
-                    }
-                }
-                assertTrue(aFound);
-                assertTrue(bFound);
-                if (dependencyFunctionsC.contains(t.getMethod())) {
-                    assertTrue(cFound);
-                } else {
-                    assertFalse(cFound);
-                }
-                found = true;
-            }
-        }
-        assertTrue(found);
     }
 
     @Test
@@ -346,20 +248,18 @@ public class SootWrapperTest {
     public void testGetCallGraphSelf() {
         try {
             // remember to run `mvn package` and `mvn dependency:copy-dependencies -DoutputDirectory="target/dependency"` to populate the below folders
-            AnalysisResult res = SootWrapper.doAnalysis(
+            Map<TargetSignature, Set<SourceSignature>> calls = getCallGraphMap(
                     Collections.singletonList(Paths.get("target/classes")),
-                    Collections.singletonList(Paths.get("target/dependency")));
-            Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
-            assertTrue(res.getBadPhantoms().isEmpty(),
-                    String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
+                    Collections.singletonList(Paths.get("target/dependency")),
+                    false);
             assertMethodIsCalledByMethods(calls, "picocli.CommandLine.<init>(Object)", new String[]{
-                    "Cli.main(String[])"
+                    "SootWrapper.Cli.main(String[])"
             });
             assertMethodIsCalledByMethods(calls, "java.io.File.exists()", new String[]{
-                    "Cli.checkExistsAndIsDir(Iterable)"
+                    "SootWrapper.Cli.checkExistsAndIsDir(Iterable)"
             });
             assertMethodIsCalledByMethods(calls, "soot.G.reset()", new String[]{
-                    "SootWrapper.doAnalysis(Iterable, Iterable)"
+                    "SootWrapper.SootWrapper.writeAnalysis(JSONWriter, Iterable, Iterable)"
             });
             assertMethodIsCalledByMethods(calls, "soot.jimple.toolkits.callgraph.CallGraph$TargetsOfMethodIterator.<init>(CallGraph, MethodOrMethodContext)", new String[]{ // todo Is this how we want subclass signatures to look?
                     "soot.jimple.toolkits.callgraph.CallGraph.edgesOutOf(MethodOrMethodContext)"
@@ -371,13 +271,57 @@ public class SootWrapperTest {
                     "soot.Main.run(String[])"
             });
             assertMethodIsCalledByMethods(calls, "soot.SootMethod.getDeclaringClass()", new String[]{
-                    "SootWrapper.getFormattedTargetSignature(SootMethod)"
-                    ,"SootWrapper.doAnalysis(Iterable, Iterable)"
-                    ,"SootWrapper.getSignatureString(SootMethod)"
+                    "SootWrapper.SootWrapper.getFormattedTargetSignature(SootMethod)"
+                    ,"SootWrapper.SootWrapper.writeAnalysis(JSONWriter, Iterable, Iterable)"
+                    ,"SootWrapper.SootWrapper.getSignatureString(SootMethod)"
             });
         } catch (Exception e) {
             fail(e.getMessage());
         }
+    }
+
+    private static Map<TargetSignature, Set<SourceSignature>> getCallGraphMap(
+            Iterable<? extends Path> pathToClassFiles, Iterable<? extends Path> pathToLibs) {
+        return getCallGraphMap(pathToClassFiles, pathToLibs, true);
+    }
+
+    private static Map<TargetSignature, Set<SourceSignature>> getCallGraphMap(
+            Iterable<? extends Path> pathToClassFiles, Iterable<? extends Path> pathToLibs, boolean assertNoPhantoms) {
+        StringBuilder sb = new StringBuilder();
+        JSONWriter jwriter = new JSONWriter(sb);
+        jwriter = jwriter.array();
+        AnalysisResult res = SootWrapper.writeAnalysis(jwriter, pathToClassFiles, pathToLibs);
+        assertTrue(res.getBadPhantoms().isEmpty(),
+                String.format("Expected no bad phantoms. Was: %s", res.getBadPhantoms().toString()));
+        if (assertNoPhantoms) {
+            assertTrue(res.getPhantoms().isEmpty(),
+                    String.format("Expected no phantoms. Was: %s", res.getPhantoms().toString()));
+        }
+        jwriter.endArray();
+
+        Map<TargetSignature, Set<SourceSignature>> calls = new HashMap<>();
+        JSONArray theArray = new JSONArray(sb.toString());
+        for (int i = 0; i < theArray.length(); i++) {
+            JSONArray theEntry = theArray.getJSONArray(i);
+            TargetSignature tar = new TargetSignature(
+                    theEntry.getString(0),
+                    theEntry.getBoolean(1),
+                    theEntry.getBoolean(2),
+                    theEntry.getString(3),
+                    theEntry.getString(4),
+                    theEntry.getInt(5),
+                    theEntry.getInt(6)
+            );
+            Set<SourceSignature> sources = new HashSet<>();
+            JSONArray sourcesJSON = theEntry.getJSONArray(7);
+            for (int j = 0; j < sourcesJSON.length(); j++) {
+                JSONArray theSource = sourcesJSON.getJSONArray(j);
+                sources.add(new SourceSignature(theSource.getString(0), theSource.getInt(1)));
+            }
+            calls.put(tar, sources);
+        }
+
+        return calls;
     }
 
     private static void assertMethodIsCalledByMethods(Map<TargetSignature, Set<SourceSignature>> calls, String callee, String[] callers) {

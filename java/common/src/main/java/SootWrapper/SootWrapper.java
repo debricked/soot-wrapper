@@ -1,5 +1,7 @@
 package SootWrapper;
 
+import org.json.JSONArray;
+import org.json.JSONWriter;
 import soot.*;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
@@ -13,7 +15,7 @@ public class SootWrapper {
 
     private static final String[] skipClassesStartingWith = {"java.", "javax.", "jdk.internal.", "sun.", "soot.dummy.InvokeDynamic"};
 
-    public static AnalysisResult doAnalysis(Iterable<Path> pathToClassFiles, Iterable<Path> pathToLibs) {
+    public static AnalysisResult writeAnalysis(JSONWriter jwriter, Iterable<? extends Path> pathToClassFiles, Iterable<? extends Path> pathToLibs) {
         G.reset(); // Reset to start fresh in case we do several analyses
 
         ArrayList<String> argsList = new ArrayList<>(Arrays.asList(
@@ -41,22 +43,42 @@ public class SootWrapper {
         PhaseOptions.v().setPhaseOption("cg", "all-reachable:true"); // Analyse entry-points other than main
 
         Main.main(argsList.toArray(new String[0])); // Do analysis
+        long startNano = System.nanoTime();
+        System.out.println("Analyses started on " + new Date());
 
         CallGraph cg = Scene.v().getCallGraph();
 
         Collection<SootClass> entryClasses = new HashSet<>();
-        Map<TargetSignature, Set<SourceSignature>> calls = new HashMap<>();
-        Map<SootMethod, Set<SootMethod>> analysedMethods = new HashMap<>();
-        Map<SootMethod, TargetSignature> targetSignatureLookup = new HashMap<>();
+        Collection<SootMethod> analysedMethods = new HashSet<>();
+        Deque<SootMethod> methodsToAnalyse = new ArrayDeque<>();
         for (SootMethod m : Scene.v().getEntryPoints()) {
             if (m.isJavaLibraryMethod()) {
                 continue;
             }
-            analyseMethod(calls, cg, m, analysedMethods, targetSignatureLookup, m, null, -1);
+            methodsToAnalyse.add(m);
             entryClasses.add(m.getDeclaringClass());
         }
         if (entryClasses.isEmpty()) {
             throw new RuntimeException(ERR_NO_ENTRY_POINTS);
+        }
+        while (!methodsToAnalyse.isEmpty()) {
+            SootMethod methodToAnalyse = methodsToAnalyse.pop();
+            if (analysedMethods.contains(methodToAnalyse)) {
+                continue;
+            }
+            analysedMethods.add(methodToAnalyse);
+
+            jwriter.value(getSignatureJSONArray(methodToAnalyse, cg));
+
+            Iterator<Edge> edgesOut = cg.edgesOutOf(methodToAnalyse);
+            while (edgesOut.hasNext()) {
+                Edge e = edgesOut.next();
+                MethodOrMethodContext target = e.getTgt();
+                SootMethod targetMethod = target instanceof MethodContext ? target.method() : (SootMethod) target;
+                if (!analysedMethods.contains(targetMethod)) {
+                    methodsToAnalyse.push(targetMethod);
+                }
+            }
         }
 
         Set<String> phantoms = new HashSet<>();
@@ -77,64 +99,39 @@ public class SootWrapper {
             }
         }
 
-        return new AnalysisResult(calls, phantoms, badPhantoms);
+        long runtime = (System.nanoTime() - startNano) / 1000000L;
+        System.out.println("Analysis finished on " + new Date());
+        System.out.println("Analysis has run for " + runtime / 60000L + " min. " + runtime % 60000L / 1000L + " sec.");
+
+        return new AnalysisResult(phantoms, badPhantoms);
     }
 
-    private static void analyseMethod(
-            Map<TargetSignature, Set<SourceSignature>> calls,
-            CallGraph cg,
-            SootMethod m,
-            Map<SootMethod, Set<SootMethod>> analysedMethods,
-            Map<SootMethod, TargetSignature> targetSignatureLookup,
-            SootMethod originatingMethod,
-            SootMethod firstDependencyMethod,
-            int lineNumberFirstDependencyMethod) {
-        // Mark this combination of method and originating method as analysed
-        if (!analysedMethods.containsKey(m)) {
-            analysedMethods.put(m, new HashSet<>());
-        }
-        analysedMethods.get(m).add(originatingMethod);
+    private static JSONArray getSignatureJSONArray(SootMethod methodToAnalyse, CallGraph cg) {
+        TargetSignature targetSignature = getFormattedTargetSignature(methodToAnalyse);
+        JSONArray callee = new JSONArray();
+        callee.put(targetSignature.getMethod());
+        callee.put(targetSignature.isApplicationClass());
+        callee.put(targetSignature.isJavaLibraryClass());
+        callee.put(targetSignature.getClassName());
+        callee.put(targetSignature.getFileName());
+        callee.put(targetSignature.getStartLineNumber());
+        callee.put(targetSignature.getEndLineNumber());
 
-        // Create a lookup entry to we can find this targetSignature in the future
-        if (targetSignatureLookup.get(m) == null) {
-            targetSignatureLookup.put(m, getFormattedTargetSignature(m));
+        JSONArray callers = new JSONArray();
+        Iterator<Edge> edgesInto = cg.edgesInto(methodToAnalyse);
+        while (edgesInto.hasNext()) {
+            Edge e = edgesInto.next();
+            MethodOrMethodContext source = e.getSrc();
+            SootMethod sourceMethod = source instanceof MethodContext ? source.method() : (SootMethod) source;
+            SourceSignature sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
+            JSONArray caller = new JSONArray();
+            caller.put(sourceSignature.getMethod());
+            caller.put(sourceSignature.getLineNumber());
+            callers.put(caller);
         }
+        callee.put(callers);
 
-        TargetSignature formattedTarget = targetSignatureLookup.get(m);
-        formattedTarget.getShortcutInfos().add(new ShortcutInfo(getSignatureString(originatingMethod), getFormattedSourceSignature(firstDependencyMethod, lineNumberFirstDependencyMethod)));
-        // If we have already analysed this target from some other root, we don't need to build relations, only add shortcut info
-        if (!calls.containsKey(formattedTarget)) {
-            Set<SourceSignature> sourceSignatures = new HashSet<>();
-            Iterator<Edge> edgesInto = cg.edgesInto(m);
-            while (edgesInto.hasNext()) {
-                Edge e = edgesInto.next();
-                MethodOrMethodContext source = e.getSrc();
-                SootMethod sourceMethod;
-                if (source instanceof MethodContext) {
-                    sourceMethod = source.method();
-                } else {
-                    sourceMethod = (SootMethod) source;
-                }
-                SourceSignature sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
-                sourceSignatures.add(sourceSignature);
-            }
-            calls.put(formattedTarget, sourceSignatures);
-        }
-
-        Iterator<Edge> edgesOut = cg.edgesOutOf(m);
-        while (edgesOut.hasNext()) {
-            Edge e = edgesOut.next();
-            MethodOrMethodContext target = e.getTgt();
-            SootMethod targetMethod = target instanceof MethodContext ? target.method() : (SootMethod) target;
-            if (!(analysedMethods.containsKey(targetMethod) && analysedMethods.get(targetMethod).contains(originatingMethod))) {
-                if (firstDependencyMethod == null) {
-                    // This is the first dependency method
-                    analyseMethod(calls, cg, targetMethod, analysedMethods, targetSignatureLookup, originatingMethod, targetMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
-                } else {
-                    analyseMethod(calls, cg, targetMethod, analysedMethods, targetSignatureLookup, originatingMethod, firstDependencyMethod, lineNumberFirstDependencyMethod);
-                }
-            }
-        }
+        return callee;
     }
 
     private static SourceSignature getFormattedSourceSignature(SootMethod method, int lineNumber) {
@@ -151,8 +148,7 @@ public class SootWrapper {
                 method.getDeclaringClass().getName(),
                 getProbableName(method.getDeclaringClass()),
                 method.getJavaSourceStartLineNumber(),
-                -1, // todo source end line number
-                new HashSet<>()
+                -1 // todo source end line number
         );
     }
 

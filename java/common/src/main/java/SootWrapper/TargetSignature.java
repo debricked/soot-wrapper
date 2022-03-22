@@ -1,7 +1,5 @@
 package SootWrapper;
 
-import java.util.Set;
-
 public class TargetSignature {
     private final String method;
 
@@ -17,8 +15,6 @@ public class TargetSignature {
 
     private final int endLineNumber;
 
-    private final Set<ShortcutInfo> shortcutInfos;
-
     public TargetSignature(
             String method,
             boolean isApplicationClass,
@@ -26,8 +22,7 @@ public class TargetSignature {
             String className,
             String fileName,
             int startLineNumber,
-            int endLineNumber,
-            Set<ShortcutInfo> shortcutInfos
+            int endLineNumber
     ) {
         this.method = method;
         this.isApplicationClass = isApplicationClass;
@@ -36,7 +31,6 @@ public class TargetSignature {
         this.fileName = fileName;
         this.startLineNumber = startLineNumber;
         this.endLineNumber = endLineNumber;
-        this.shortcutInfos = shortcutInfos;
     }
 
     public String getMethod() {
@@ -65,9 +59,5 @@ public class TargetSignature {
 
     public int getEndLineNumber() {
         return endLineNumber;
-    }
-
-    public Set<ShortcutInfo> getShortcutInfos() {
-        return shortcutInfos;
     }
 }

@@ -1,6 +1,5 @@
 package SootWrapper;
 
-import org.json.JSONArray;
 import org.json.JSONWriter;
 import picocli.CommandLine;
 
@@ -55,37 +54,7 @@ class Cli implements Callable<Integer> {
         jwriter.key("version").value(getCallGraphVersion());
         jwriter = jwriter.key("data").array();
 
-        AnalysisResult res = SootWrapper.doAnalysis(userCodePaths, libraryCodePaths);
-        Map<TargetSignature, Set<SourceSignature>> calls = res.getCallGraph();
-
-        for (TargetSignature target : calls.keySet()) {
-            JSONArray callee = new JSONArray();
-            callee.put(target.getMethod());
-            callee.put(target.isApplicationClass());
-            callee.put(target.isJavaLibraryClass());
-            callee.put(target.getClassName());
-            callee.put(target.getFileName());
-            callee.put(target.getStartLineNumber());
-            callee.put(target.getEndLineNumber());
-            JSONArray shortcuts = new JSONArray();
-            for (ShortcutInfo s : target.getShortcutInfos()) {
-                JSONArray shortcut = new JSONArray();
-                shortcut.put(s.getUserCodeMethod());
-                shortcut.put(s.getFirstDependencyCall().getLineNumber());
-                shortcut.put(s.getFirstDependencyCall().getMethod());
-                shortcuts.put(shortcut);
-            }
-            callee.put(shortcuts);
-            JSONArray callers = new JSONArray();
-            for (SourceSignature source : calls.get(target)) {
-                JSONArray caller = new JSONArray();
-                caller.put(source.getMethod());
-                caller.put(source.getLineNumber());
-                callers.put(caller);
-            }
-            callee.put(callers);
-            jwriter.value(callee);
-        }
+        AnalysisResult res = SootWrapper.writeAnalysis(jwriter, userCodePaths, libraryCodePaths);
 
         jwriter.endArray().endObject();
         writer.close();

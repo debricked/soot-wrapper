@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Running vulnerable functionality for Java (generic) version 0.4.1"
+echo "Running vulnerable functionality for Java (generic) version 0.5.0"
 
 set -e
 
