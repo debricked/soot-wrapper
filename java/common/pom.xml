@@ -6,7 +6,7 @@
 
     <groupId>com.debricked</groupId>
     <artifactId>SootWrapper</artifactId>
-    <version>5.0</version>
+    <version>5.1</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
