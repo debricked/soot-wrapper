@@ -34,8 +34,8 @@ class Cli implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        checkExistsAndIsDir(userCodePaths);
-        checkExistsAndIsDir(libraryCodePaths);
+        checkExistsAndIsDir(userCodePaths, true);
+        checkExistsAndIsDir(libraryCodePaths, false);
         BufferedWriter writer;
         if (outputFile != null) {
             if (outputFile.isDirectory()) {
@@ -85,13 +85,25 @@ class Cli implements Callable<Integer> {
         return exitCode;
     }
 
-    private static void checkExistsAndIsDir(Iterable<? extends Path> paths) throws FileNotFoundException {
+    private static void checkExistsAndIsDir(Iterable<? extends Path> paths, boolean checkJar) throws FileNotFoundException {
         for (Path p : paths) {
             File f = p.toFile();
             if (!f.exists()) {
                 throw new FileNotFoundException(String.format("Error: %s can't be found", p));
             }
             if (!f.isDirectory()) {
+                // Check for .jar file
+                if (checkJar) {
+                    String fileName = f.getName();
+                    int index = fileName.lastIndexOf('.');
+                    if (index > 0) {
+                        String extension = fileName.substring(index+1);
+                        if (extension.equals("jar")) {
+                            return;
+                        }
+                    }
+                }
+
                 throw new IllegalArgumentException(String.format("Error: %s is not a directory", p));
             }
         }

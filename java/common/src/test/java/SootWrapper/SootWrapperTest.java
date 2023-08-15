@@ -256,7 +256,7 @@ public class SootWrapperTest {
                     "SootWrapper.Cli.main(String[])"
             });
             assertMethodIsCalledByMethods(calls, "java.io.File.exists()", new String[]{
-                    "SootWrapper.Cli.checkExistsAndIsDir(Iterable)"
+                    "SootWrapper.Cli.checkExistsAndIsDir(Iterable, boolean)"
             });
             assertMethodIsCalledByMethods(calls, "soot.G.reset()", new String[]{
                     "SootWrapper.SootWrapper.writeAnalysis(JSONWriter, Iterable, Iterable)"
