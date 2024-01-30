@@ -127,6 +127,7 @@ public class SootWrapper {
             JSONArray caller = new JSONArray();
             caller.put(sourceSignature.getMethod());
             caller.put(sourceSignature.getLineNumber());
+            caller.put(sourceSignature.getFileName());
             callers.put(caller);
         }
         callee.put(callers);
@@ -136,8 +137,12 @@ public class SootWrapper {
 
     private static SourceSignature getFormattedSourceSignature(SootMethod method, int lineNumber) {
         return method == null
-                ? new SourceSignature("-", -1)
-                : new SourceSignature(getSignatureString(method), lineNumber);
+                ? new SourceSignature("-", -1, "-")
+                : new SourceSignature(
+                    getSignatureString(method),
+                    lineNumber,
+                    getProbableName(method.getDeclaringClass())
+                );
     }
 
     private static TargetSignature getFormattedTargetSignature(SootMethod method) {

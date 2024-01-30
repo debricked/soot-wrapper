@@ -5,9 +5,12 @@ public class SourceSignature {
 
     private final int lineNumber;
 
-    public SourceSignature(String method, int lineNumber) {
+    private final String fileName;
+
+    public SourceSignature(String method, int lineNumber, String fileName) {
         this.method = method;
         this.lineNumber = lineNumber;
+        this.fileName = fileName;
     }
 
     public String getMethod() {
@@ -16,5 +19,9 @@ public class SourceSignature {
 
     public int getLineNumber() {
         return lineNumber;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 }

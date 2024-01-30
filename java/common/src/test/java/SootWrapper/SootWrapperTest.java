@@ -316,7 +316,7 @@ public class SootWrapperTest {
             JSONArray sourcesJSON = theEntry.getJSONArray(7);
             for (int j = 0; j < sourcesJSON.length(); j++) {
                 JSONArray theSource = sourcesJSON.getJSONArray(j);
-                sources.add(new SourceSignature(theSource.getString(0), theSource.getInt(1)));
+                sources.add(new SourceSignature(theSource.getString(0), theSource.getInt(1), "-"));
             }
             calls.put(tar, sources);
         }
