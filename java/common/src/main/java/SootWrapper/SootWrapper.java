@@ -68,7 +68,7 @@ public class SootWrapper {
             }
             analysedMethods.add(methodToAnalyse);
 
-            jwriter.value(getSignatureJSONArray(methodToAnalyse, cg));
+            jwriter.value(getSignatureJSONArray(methodToAnalyse, cg, pathToClassFiles));
 
             Iterator<Edge> edgesOut = cg.edgesOutOf(methodToAnalyse);
             while (edgesOut.hasNext()) {
@@ -106,7 +106,7 @@ public class SootWrapper {
         return new AnalysisResult(phantoms, badPhantoms);
     }
 
-    private static JSONArray getSignatureJSONArray(SootMethod methodToAnalyse, CallGraph cg) {
+    private static JSONArray getSignatureJSONArray(SootMethod methodToAnalyse, CallGraph cg, Iterable<? extends Path> pathToClassFiles) {
         TargetSignature targetSignature = getFormattedTargetSignature(methodToAnalyse);
         JSONArray callee = new JSONArray();
         callee.put(targetSignature.getMethod());
@@ -123,10 +123,15 @@ public class SootWrapper {
             Edge e = edgesInto.next();
             MethodOrMethodContext source = e.getSrc();
             SootMethod sourceMethod = source instanceof MethodContext ? source.method() : (SootMethod) source;
-            SourceSignature sourceSignature = getFormattedSourceSignature(sourceMethod, e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber());
+            SourceSignature sourceSignature = getFormattedSourceSignature(
+                sourceMethod,
+                e.srcStmt() == null ? -1 : e.srcStmt().getJavaSourceStartLineNumber(),
+                pathToClassFiles
+            );
             JSONArray caller = new JSONArray();
             caller.put(sourceSignature.getMethod());
             caller.put(sourceSignature.getLineNumber());
+            caller.put(sourceSignature.getFileName());
             callers.put(caller);
         }
         callee.put(callers);
@@ -134,10 +139,14 @@ public class SootWrapper {
         return callee;
     }
 
-    private static SourceSignature getFormattedSourceSignature(SootMethod method, int lineNumber) {
+    private static SourceSignature getFormattedSourceSignature(SootMethod method, int lineNumber, Iterable<? extends Path> pathToClassFiles) {
         return method == null
-                ? new SourceSignature("-", -1)
-                : new SourceSignature(getSignatureString(method), lineNumber);
+                ? new SourceSignature("-", -1, "-")
+                : new SourceSignature(
+                    getSignatureString(method),
+                    lineNumber,
+                    getProbableSourceName(method, pathToClassFiles)
+                );
     }
 
     private static TargetSignature getFormattedTargetSignature(SootMethod method) {
@@ -169,6 +178,26 @@ public class SootWrapper {
         return sb.toString();
     }
 
+    private static String getModuleString(SootMethod method) {
+        StringBuilder sb = new StringBuilder();
+        String classString = method.getDeclaringClass().toString();
+        boolean foundDot = false;
+        for (int i = 0; i < classString.length(); i++) {
+            char c = classString.charAt(i);
+            if (c != '.') {
+                sb.append(c);
+            } else {
+                foundDot = true;
+                break;
+            }
+        }
+        if (!foundDot) {
+            return "";
+        }
+        return sb.toString();
+    }
+
+
     private static String getProbableName(SootClass c) {
         if (c.isJavaLibraryClass()) {
             return "-";
@@ -181,6 +210,20 @@ public class SootWrapper {
         }
         className = className.replace('.', '/') + ".java";
         return className;
+    }
+
+    private static String getProbableSourceName(SootMethod method, Iterable<? extends Path> pathToClassFiles) {
+        String moduleName = getModuleString(method);
+        String onlyDeclaringClassName = method.getDeclaringClass().getName().replaceFirst(moduleName + ".", "/");
+        if (moduleName.length() == 0) {
+            return "<unknown>";
+        }
+        for (Path path : pathToClassFiles) {
+            if (path.toString().endsWith(moduleName)) {
+                return path.toString() + onlyDeclaringClassName + ".java";
+            }
+        }
+        return "-";
     }
 
     private static String getParameterClass(Type parameter) {
