@@ -12,7 +12,7 @@ inputs:
     default: 'target/classes'
 runs:
   using: docker
-  image: docker://debricked/vulnerable-functionality-maven:master
+  image: docker://debricked/soot-wrapper-maven:master
   entrypoint: /vulnfunc/java/maven/github-action.sh
   args:
     - ${{ inputs.root-pom-directory }}

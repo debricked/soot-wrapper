@@ -10,7 +10,7 @@ inputs:
     required: true
 runs:
   using: docker
-  image: docker://debricked/vulnerable-functionality-java:master
+  image: docker://debricked/soot-wrapper-java:master
   entrypoint: /vulnfunc/java/github-action.sh
   args:
     - ${{ inputs.path-to-compiled-files }}
