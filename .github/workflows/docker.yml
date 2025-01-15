@@ -37,8 +37,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-           ghcr.io/debricked/vulnerable-functionality-maven:${{ env.IDENTIFIER }}
-           debricked/vulnerable-functionality-maven:${{ env.IDENTIFIER }}
+           ghcr.io/debricked/soot-wrapper-maven:${{ env.IDENTIFIER }}
+           debricked/soot-wrapper-maven:${{ env.IDENTIFIER }}
 
   docker-gradle:
     runs-on: ubuntu-latest
@@ -74,8 +74,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-           ghcr.io/debricked/vulnerable-functionality-gradle:${{ env.IDENTIFIER }}
-           debricked/vulnerable-functionality-gradle:${{ env.IDENTIFIER }}
+           ghcr.io/debricked/soot-wrapper-gradle:${{ env.IDENTIFIER }}
+           debricked/soot-wrapper-gradle:${{ env.IDENTIFIER }}
 
   docker-java:
     runs-on: ubuntu-latest
@@ -111,5 +111,5 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-           ghcr.io/debricked/vulnerable-functionality-java:${{ env.IDENTIFIER }}
-           debricked/vulnerable-functionality-java:${{ env.IDENTIFIER }}
+           ghcr.io/debricked/soot-wrapper-java:${{ env.IDENTIFIER }}
+           debricked/soot-wrapper-java:${{ env.IDENTIFIER }}
